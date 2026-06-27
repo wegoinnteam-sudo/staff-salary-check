@@ -7,6 +7,7 @@ import {
   DEFAULT_HOURLY_WAGE,
   INSURANCE_THRESHOLD,
   INSURANCE_ITEM_KEYS,
+  FREELANCER_IDS,
 } from '../config.js';
 
 // ─────────────────────────────────────────────
@@ -178,13 +179,31 @@ export const calculatePayslip = (employee, insuranceRates, holidayEligibleNames,
   // 세전 총급여 = 기본급 + 주휴수당
   const grossPay = basePay + holidayPay;
 
-  // 4대보험 전체 공제 여부 판단
-  const isFullInsurance =
-    grossPay >= INSURANCE_THRESHOLD.MIN_SALARY ||
-    totalHours >= INSURANCE_THRESHOLD.MIN_HOURS;
+  // 프리랜서 여부 확인 (3.3% 원천징수 대상)
+  const isFreelancer = FREELANCER_IDS.includes(String(id).trim());
 
-  // 공제액 계산
-  const deductions = calculateDeductions(grossPay, insuranceRates, isFullInsurance);
+  let deductions;
+  let isFullInsurance = false;
+
+  if (isFreelancer) {
+    // 소득세 3% + 지방소득세 0.3% = 3.3% 원천징수
+    const tax = Math.floor(grossPay * 0.033);
+    deductions = {
+      nationalPension: 0,
+      healthInsurance: 0,
+      longTermCare: 0,
+      employmentInsurance: 0,
+      freelancerTax: tax,
+      total: tax,
+    };
+  } else {
+    // 4대보험 전체 공제 여부 판단
+    isFullInsurance =
+      grossPay >= INSURANCE_THRESHOLD.MIN_SALARY ||
+      totalHours >= INSURANCE_THRESHOLD.MIN_HOURS;
+    deductions = calculateDeductions(grossPay, insuranceRates, isFullInsurance);
+    deductions.freelancerTax = 0;
+  }
 
   // 실수령액
   const netPay = grossPay - deductions.total;
@@ -193,7 +212,7 @@ export const calculatePayslip = (employee, insuranceRates, holidayEligibleNames,
     id,
     name,
     targetMonth,
-    dailyHours: monthlyHours,  // 선택된 월의 날짜별 근무시간만
+    dailyHours: monthlyHours,
     totalHours,
     hourlyWage,
     basePay,
@@ -201,6 +220,7 @@ export const calculatePayslip = (employee, insuranceRates, holidayEligibleNames,
     holidayHours,
     holidayPay,
     grossPay,
+    isFreelancer,
     isFullInsurance,
     deductions,
     netPay,

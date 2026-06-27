@@ -17,6 +17,10 @@ export const WORK_HOURS_SHEET_NAME = 'time sheet';
 // 관리자 마스터 비밀번호
 export const MASTER_PASSWORD = '999222';
 
+// 프리랜서(3.3% 원천징수) 직원 ID 목록
+// 해당 직원은 4대보험 대신 소득세 3% + 지방소득세 0.3% = 3.3% 공제
+export const FREELANCER_IDS = ['000905'];
+
 // 기본 시급 (단위: 원)
 // TODO: 직원별 개인 시급 데이터 소스가 확정되면 시트에서 불러오도록 수정
 export const DEFAULT_HOURLY_WAGE = 10030;

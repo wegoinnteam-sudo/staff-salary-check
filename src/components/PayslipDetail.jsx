@@ -2,6 +2,7 @@
 // 📋 급여명세서 상세 카드 (직원 / 관리자 공통 컴포넌트)
 // ============================================================
 
+import { useState } from 'react';
 import { formatKRW, formatHours } from '../utils/payrollCalc.js';
 import { formatKoreanMonth, parseGvizDate } from '../utils/dateUtils.js';
 
@@ -16,22 +17,18 @@ const getDayOfWeek = (d) => {
 };
 
 // dailyHours를 일요일 시작 7열 주간 그리드로 변환합니다
-// null 슬롯은 빈 칸(월 시작/종료 여백)입니다
 const buildWeeklyGrid = (dailyHours) => {
   if (!dailyHours.length) return [];
   const firstDow = getDayOfWeek(dailyHours[0]);
 
   if (firstDow !== null) {
-    // 첫 날 요일만큼 앞에 빈 칸 삽입
     const slots = [...Array(firstDow).fill(null), ...dailyHours];
-    // 마지막 주도 7칸으로 채우기
     while (slots.length % 7 !== 0) slots.push(null);
     const weeks = [];
     for (let i = 0; i < slots.length; i += 7) weeks.push(slots.slice(i, i + 7));
     return weeks;
   }
 
-  // 날짜 파싱 불가 시 단순 7개씩 분리
   const weeks = [];
   for (let i = 0; i < dailyHours.length; i += 7) {
     const week = dailyHours.slice(i, i + 7);
@@ -54,10 +51,14 @@ const PayslipDetail = ({ payslip, onClose }) => {
     holidayHours,
     holidayPay,
     grossPay,
+    isFreelancer,
     isFullInsurance,
     deductions,
     netPay,
   } = payslip;
+
+  // 주휴수당 상세 계산 토글
+  const [showHolidayDetail, setShowHolidayDetail] = useState(false);
 
   const workedDays = dailyHours.filter((d) => d.hours > 0);
   const weeklyGrid = buildWeeklyGrid(dailyHours);
@@ -72,6 +73,7 @@ const PayslipDetail = ({ payslip, onClose }) => {
           <p className="payslip-meta">
             ID: <strong>{id}</strong> &nbsp;·&nbsp;
             {formatKoreanMonth(targetMonth.year, targetMonth.month)}
+            {isFreelancer && <span className="tag tag--freelancer">프리랜서</span>}
           </p>
         </div>
         {onClose && (
@@ -99,14 +101,11 @@ const PayslipDetail = ({ payslip, onClose }) => {
       {workedDays.length > 0 && (
         <Section title="📅 날짜별 근무시간">
           <div className="weekly-grid">
-            {/* 요일 헤더: 일 ~ 토 */}
             {DAY_NAMES.map((d) => (
               <div key={d} className={`weekly-header-cell ${d === '일' ? 'weekly-header-cell--sun' : d === '토' ? 'weekly-header-cell--sat' : ''}`}>
                 {d}
               </div>
             ))}
-
-            {/* 주차별 셀 */}
             {weeklyGrid.map((week, wi) =>
               week.map((entry, di) => {
                 if (!entry) {
@@ -143,11 +142,48 @@ const PayslipDetail = ({ payslip, onClose }) => {
 
         {isHolidayEligible ? (
           <>
-            <Row
-              label={`주휴수당 시간 (${formatHours(holidayHours)})`}
-              value={formatKRW(holidayPay)}
-              tag="주휴수당 대상"
-            />
+            {/* 주휴수당 행 — 클릭하면 상세 계산 토글 */}
+            <div
+              className="payslip-row payslip-row--clickable"
+              onClick={() => setShowHolidayDetail((v) => !v)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && setShowHolidayDetail((v) => !v)}
+            >
+              <span className="payslip-row-label">
+                주휴수당
+                <span className="tag">주휴수당 대상</span>
+                <span className="holiday-toggle-icon">{showHolidayDetail ? '▲' : '▼'}</span>
+              </span>
+              <span className="payslip-row-value">{formatKRW(holidayPay)}</span>
+            </div>
+
+            {/* 주휴 상세 계산 패널 */}
+            {showHolidayDetail && (
+              <div className="holiday-detail-panel">
+                <p className="holiday-detail-title">주휴수당 계산 내역</p>
+                <div className="holiday-detail-row">
+                  <span>총 근무시간</span>
+                  <span>{formatHours(totalHours)}</span>
+                </div>
+                <div className="holiday-detail-row">
+                  <span>주휴 공식</span>
+                  <span>총 근무시간 ÷ 40 × 8</span>
+                </div>
+                <div className="holiday-detail-row">
+                  <span>주휴 시간</span>
+                  <span>
+                    {parseFloat(totalHours.toFixed(2))} ÷ 40 × 8 = <strong>{parseFloat(holidayHours.toFixed(2))}시간</strong>
+                  </span>
+                </div>
+                <div className="holiday-detail-row">
+                  <span>주휴수당</span>
+                  <span>
+                    {parseFloat(holidayHours.toFixed(2))}시간 × {formatKRW(hourlyWage)} = <strong>{formatKRW(holidayPay)}</strong>
+                  </span>
+                </div>
+              </div>
+            )}
           </>
         ) : (
           <Row label="주휴수당" value="해당 없음" muted />
@@ -157,28 +193,37 @@ const PayslipDetail = ({ payslip, onClose }) => {
         <Row label="세전 총급여" value={formatKRW(grossPay)} bold />
       </Section>
 
-      {/* 4대보험 공제 */}
-      <Section
-        title={`🔖 4대보험 공제 ${isFullInsurance ? '(전체)' : '(고용보험만)'}`}
-      >
-        {isFullInsurance ? (
-          <>
-            <Row label="국민연금" value={formatKRW(deductions.nationalPension)} />
-            <Row label="건강보험" value={formatKRW(deductions.healthInsurance)} />
-            <Row label="장기요양보험" value={formatKRW(deductions.longTermCare)} />
-            <Row label="고용보험" value={formatKRW(deductions.employmentInsurance)} />
-          </>
-        ) : (
-          <>
-            <Row label="국민연금" value="미공제" muted />
-            <Row label="건강보험" value="미공제" muted />
-            <Row label="장기요양보험" value="미공제" muted />
-            <Row label="고용보험" value={formatKRW(deductions.employmentInsurance)} />
-          </>
-        )}
-        <div className="divider" />
-        <Row label="총 공제액" value={formatKRW(deductions.total)} bold danger />
-      </Section>
+      {/* 공제 섹션 — 프리랜서 vs 4대보험 */}
+      {isFreelancer ? (
+        <Section title="🧾 원천징수 (프리랜서 3.3%)">
+          <Row label="소득세 (3%)" value={formatKRW(Math.floor(grossPay * 0.03))} />
+          <Row label="지방소득세 (0.3%)" value={formatKRW(Math.floor(grossPay * 0.003))} />
+          <div className="divider" />
+          <Row label="총 원천징수액" value={formatKRW(deductions.total)} bold danger />
+        </Section>
+      ) : (
+        <Section
+          title={`🔖 4대보험 공제 ${isFullInsurance ? '(전체)' : '(고용보험만)'}`}
+        >
+          {isFullInsurance ? (
+            <>
+              <Row label="국민연금" value={formatKRW(deductions.nationalPension)} />
+              <Row label="건강보험" value={formatKRW(deductions.healthInsurance)} />
+              <Row label="장기요양보험" value={formatKRW(deductions.longTermCare)} />
+              <Row label="고용보험" value={formatKRW(deductions.employmentInsurance)} />
+            </>
+          ) : (
+            <>
+              <Row label="국민연금" value="미공제" muted />
+              <Row label="건강보험" value="미공제" muted />
+              <Row label="장기요양보험" value="미공제" muted />
+              <Row label="고용보험" value={formatKRW(deductions.employmentInsurance)} />
+            </>
+          )}
+          <div className="divider" />
+          <Row label="총 공제액" value={formatKRW(deductions.total)} bold danger />
+        </Section>
+      )}
 
       {/* 최종 합계 */}
       <div className="payslip-total">
@@ -187,7 +232,7 @@ const PayslipDetail = ({ payslip, onClose }) => {
           <span>{formatKRW(grossPay)}</span>
         </div>
         <div className="payslip-total-row">
-          <span>총 공제액</span>
+          <span>{isFreelancer ? '원천징수 (3.3%)' : '총 공제액'}</span>
           <span className="text-danger">- {formatKRW(deductions.total)}</span>
         </div>
         <div className="payslip-total-row payslip-total-row--final">
@@ -196,11 +241,13 @@ const PayslipDetail = ({ payslip, onClose }) => {
         </div>
       </div>
 
-      {/* 공제 기준 안내 */}
+      {/* 안내 메시지 */}
       <p className="payslip-note">
-        {isFullInsurance
-          ? '✅ 세전 급여 80만원 이상 또는 월 80시간 이상으로 4대보험 전체 적용'
-          : 'ℹ️ 세전 급여 80만원 미만 · 월 80시간 미만으로 고용보험만 적용'}
+        {isFreelancer
+          ? '📋 프리랜서 신고 대상 · 세전 급여의 3.3% 원천징수 적용'
+          : isFullInsurance
+            ? '✅ 세전 급여 80만원 이상 또는 월 80시간 이상으로 4대보험 전체 적용'
+            : 'ℹ️ 세전 급여 80만원 미만 · 월 80시간 미만으로 고용보험만 적용'}
       </p>
     </div>
   );

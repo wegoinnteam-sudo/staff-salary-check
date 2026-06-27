@@ -763,6 +763,77 @@ body {
   font-size: 11px;
 }
 
+/* 프리랜서 태그 */
+.tag--freelancer {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fcd34d;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+/* 클릭 가능한 주휴수당 행 */
+.payslip-row--clickable {
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  padding: 6px 4px;
+  margin: 0 -4px;
+  transition: background 0.15s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.payslip-row--clickable:hover {
+  background: var(--primary-bg);
+}
+
+.holiday-toggle-icon {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-left: 4px;
+}
+
+/* 주휴수당 상세 계산 패널 */
+.holiday-detail-panel {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin: 4px 0 8px;
+  font-size: 13px;
+}
+
+.holiday-detail-title {
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.holiday-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 4px 0;
+  border-bottom: 1px dashed var(--border);
+  gap: 8px;
+  color: var(--text-2);
+}
+.holiday-detail-row:last-child {
+  border-bottom: none;
+  color: var(--text-1);
+  font-weight: 500;
+}
+.holiday-detail-row strong {
+  color: var(--primary);
+}
+
 /* 최종 합계 영역 */
 .payslip-total {
   padding: 20px 28px;
