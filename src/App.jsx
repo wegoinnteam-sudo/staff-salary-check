@@ -58,8 +58,12 @@ function App() {
       setCalcError(null);
       try {
         if (authState.type === 'admin') {
+          // B열(ID)이 없는 직원은 관리자 화면에서 제외
+          const employeesWithId = sheetsData.employees.filter(
+            (e) => String(e.id || '').trim() !== ''
+          );
           const payslips = calculateAllPayslips(
-            sheetsData.employees,
+            employeesWithId,
             sheetsData.insuranceRates,
             sheetsData.holidayEligibleNames,
             targetMonth
