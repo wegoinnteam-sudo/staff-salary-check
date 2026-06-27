@@ -7,14 +7,38 @@ import { formatKoreanMonth, parseGvizDate } from '../utils/dateUtils.js';
 
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 
-// d.day가 없을 때 date 또는 label에서 요일을 계산합니다
-const getDayName = (d) => {
-  if (d.day) return d.day;
-  if (d.date instanceof Date && !isNaN(d.date)) return DAY_NAMES[d.date.getDay()];
-  // label에서 날짜 파싱 시도
+// 엔트리의 요일 인덱스(0=일 ~ 6=토)를 반환합니다
+const getDayOfWeek = (d) => {
+  if (d.date instanceof Date && !isNaN(d.date)) return d.date.getDay();
   const parsed = parseGvizDate(d.label, d.label);
-  if (parsed) return DAY_NAMES[parsed.getDay()];
-  return '';
+  if (parsed) return parsed.getDay();
+  return null;
+};
+
+// dailyHours를 일요일 시작 7열 주간 그리드로 변환합니다
+// null 슬롯은 빈 칸(월 시작/종료 여백)입니다
+const buildWeeklyGrid = (dailyHours) => {
+  if (!dailyHours.length) return [];
+  const firstDow = getDayOfWeek(dailyHours[0]);
+
+  if (firstDow !== null) {
+    // 첫 날 요일만큼 앞에 빈 칸 삽입
+    const slots = [...Array(firstDow).fill(null), ...dailyHours];
+    // 마지막 주도 7칸으로 채우기
+    while (slots.length % 7 !== 0) slots.push(null);
+    const weeks = [];
+    for (let i = 0; i < slots.length; i += 7) weeks.push(slots.slice(i, i + 7));
+    return weeks;
+  }
+
+  // 날짜 파싱 불가 시 단순 7개씩 분리
+  const weeks = [];
+  for (let i = 0; i < dailyHours.length; i += 7) {
+    const week = dailyHours.slice(i, i + 7);
+    while (week.length < 7) week.push(null);
+    weeks.push(week);
+  }
+  return weeks;
 };
 
 const PayslipDetail = ({ payslip, onClose }) => {
@@ -35,8 +59,8 @@ const PayslipDetail = ({ payslip, onClose }) => {
     netPay,
   } = payslip;
 
-  // 근무한 날만 필터 (시간이 있는 날)
   const workedDays = dailyHours.filter((d) => d.hours > 0);
+  const weeklyGrid = buildWeeklyGrid(dailyHours);
 
   return (
     <div className="payslip">
@@ -71,22 +95,43 @@ const PayslipDetail = ({ payslip, onClose }) => {
         )}
       </Section>
 
-      {/* 날짜별 근무시간 */}
+      {/* 날짜별 근무시간 - 주간 캘린더 */}
       {workedDays.length > 0 && (
         <Section title="📅 날짜별 근무시간">
-          <div className="daily-hours-grid">
-            {dailyHours.map((d, i) => (
-              <div
-                key={i}
-                className={`daily-cell ${d.hours > 0 ? 'daily-cell--active' : 'daily-cell--empty'}`}
-              >
-                <span className="daily-date">{d.label}</span>
-                <span className="daily-day">{getDayName(d)}</span>
-                <span className="daily-hours">
-                  {d.hours > 0 ? `${d.hours}h` : '-'}
-                </span>
+          <div className="weekly-grid">
+            {/* 요일 헤더: 일 ~ 토 */}
+            {DAY_NAMES.map((d) => (
+              <div key={d} className={`weekly-header-cell ${d === '일' ? 'weekly-header-cell--sun' : d === '토' ? 'weekly-header-cell--sat' : ''}`}>
+                {d}
               </div>
             ))}
+
+            {/* 주차별 셀 */}
+            {weeklyGrid.map((week, wi) =>
+              week.map((entry, di) => {
+                if (!entry) {
+                  return <div key={`${wi}-${di}`} className="daily-cell daily-cell--placeholder" />;
+                }
+                const isSun = di === 0;
+                const isSat = di === 6;
+                return (
+                  <div
+                    key={`${wi}-${di}`}
+                    className={[
+                      'daily-cell',
+                      entry.hours > 0 ? 'daily-cell--active' : 'daily-cell--empty',
+                      isSun ? 'daily-cell--sun' : '',
+                      isSat ? 'daily-cell--sat' : '',
+                    ].join(' ').trim()}
+                  >
+                    <span className="daily-date">{entry.label}</span>
+                    <span className="daily-hours">
+                      {entry.hours > 0 ? `${entry.hours}h` : '-'}
+                    </span>
+                  </div>
+                );
+              })
+            )}
           </div>
         </Section>
       )}

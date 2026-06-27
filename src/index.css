@@ -687,33 +687,63 @@ body {
   padding: 12px 0;
 }
 
-/* 날짜별 근무시간 그리드 */
-.daily-hours-grid {
+/* 주간 캘린더 그리드: 항상 7열 고정 */
+.weekly-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-  gap: 6px;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
 }
 
+/* 요일 헤더 셀 */
+.weekly-header-cell {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  padding: 4px 0 6px;
+  letter-spacing: 0.03em;
+}
+.weekly-header-cell--sun { color: #ef4444; }
+.weekly-header-cell--sat { color: #3b82f6; }
+
+/* 날짜 셀 공통 */
 .daily-cell {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 8px 4px;
+  padding: 6px 2px;
   border-radius: var(--radius-sm);
   font-size: 12px;
   text-align: center;
-  gap: 2px;
+  gap: 3px;
+  min-height: 50px;
+  justify-content: center;
 }
 
+/* 근무한 날 */
 .daily-cell--active {
   background: var(--primary-bg);
   border: 1px solid var(--primary-light);
 }
 
+/* 근무 없는 날 */
 .daily-cell--empty {
   background: var(--bg);
   border: 1px solid var(--border);
 }
+
+/* 빈 패딩 칸 (월 시작/종료 여백) */
+.daily-cell--placeholder {
+  background: transparent;
+  border: none;
+  min-height: 50px;
+}
+
+/* 일요일 날짜 빨간색 */
+.daily-cell--sun .daily-date { color: #ef4444; }
+
+/* 토요일 날짜 파란색 */
+.daily-cell--sat .daily-date { color: #3b82f6; }
 
 .daily-date {
   font-weight: 600;
@@ -721,20 +751,16 @@ body {
   font-size: 11px;
 }
 
-.daily-day {
-  font-size: 10px;
-  color: var(--text-muted);
-}
-
 .daily-hours {
   font-weight: 700;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--primary);
 }
 
 .daily-cell--empty .daily-hours {
   color: var(--text-muted);
   font-weight: 400;
+  font-size: 11px;
 }
 
 /* 최종 합계 영역 */
@@ -1049,9 +1075,25 @@ body {
     padding: 12px 20px;
   }
 
-  .daily-hours-grid {
-    grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
-    gap: 4px;
+  .weekly-grid {
+    gap: 3px;
+  }
+
+  .daily-cell {
+    padding: 4px 1px;
+    min-height: 44px;
+  }
+
+  .weekly-header-cell {
+    font-size: 10px;
+  }
+
+  .daily-date {
+    font-size: 10px;
+  }
+
+  .daily-hours {
+    font-size: 11px;
   }
 
   .modal-content {
