@@ -12,8 +12,8 @@ import { getCurrentKoreanMonth } from './utils/dateUtils.js';
 import './App.css';
 
 function App() {
-  // 현재 한국시간 기준 월 (앱 실행 시 고정)
-  const [targetMonth] = useState(() => getCurrentKoreanMonth());
+  // 한국시간 기준 현재 월 (로그인 시마다 갱신)
+  const [targetMonth, setTargetMonth] = useState(() => getCurrentKoreanMonth());
 
   // 인증 상태: 'login' | 'employee' | 'admin'
   const [authState, setAuthState] = useState({ type: 'login' });
@@ -29,11 +29,12 @@ function App() {
   const [calcLoading, setCalcLoading] = useState(false);
   const [calcError, setCalcError] = useState(null);
 
-  // ─── 앱 시작 시 Google Sheets 데이터 fetch ───────────────
+  // ─── targetMonth가 바뀔 때마다 Google Sheets 데이터 재fetch ─
   useEffect(() => {
     const load = async () => {
       setSheetsLoading(true);
       setSheetsError(null);
+      setSheetsData(null); // 이전 달 데이터 초기화
       try {
         const data = await fetchAllData(targetMonth);
         setSheetsData(data);
@@ -96,6 +97,13 @@ function App() {
     setCalcError(null);
     setEmployeePayslip(null);
     setAllPayslips(null);
+
+    // 로그인 시점의 KST 현재 월로 갱신 (월이 바뀐 경우 자동 반영)
+    setTargetMonth((prev) => {
+      const now = getCurrentKoreanMonth();
+      if (prev.year === now.year && prev.month === now.month) return prev;
+      return now;
+    });
 
     if (type === 'admin') {
       setAuthState({ type: 'admin' });
