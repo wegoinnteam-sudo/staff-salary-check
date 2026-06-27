@@ -112,11 +112,55 @@ export const calculateDeductions = (grossPay, insuranceRates, isFullInsurance) =
  * @param {{ year: number, month: number }} targetMonth
  * @returns {object} 급여명세서 전체 데이터
  */
+/**
+ * dailyHours 엔트리가 targetMonth에 속하는지 확인합니다.
+ * date 객체가 있으면 우선 사용, 없으면 label("M/D", "M/D/YYYY" 등)로 판단합니다.
+ * 판단 불가능한 경우(단순 숫자 라벨 등)에는 포함합니다.
+ */
+const isEntryInMonth = (entry, { year, month }) => {
+  // 파싱된 Date 객체가 있으면 직접 확인
+  if (entry.date instanceof Date && !isNaN(entry.date)) {
+    return entry.date.getFullYear() === year && entry.date.getMonth() + 1 === month;
+  }
+
+  const label = String(entry.label || '').trim();
+
+  // "M/D/YYYY" 형식 (US)
+  const usMatch = label.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (usMatch) {
+    return parseInt(usMatch[1]) === month && parseInt(usMatch[3]) === year;
+  }
+
+  // "M/D" 형식 (슬래시, 연도 없음 → 현재 연도로 간주)
+  const slashMatch = label.match(/^(\d{1,2})\/(\d{1,2})$/);
+  if (slashMatch) {
+    return parseInt(slashMatch[1]) === month;
+  }
+
+  // "M월 D일" 형식
+  const krMatch = label.match(/^(\d{1,2})월\s*(\d{1,2})일$/);
+  if (krMatch) {
+    return parseInt(krMatch[1]) === month;
+  }
+
+  // "YYYY-MM-DD" 형식
+  const isoMatch = label.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+  if (isoMatch) {
+    return parseInt(isoMatch[1]) === year && parseInt(isoMatch[2]) === month;
+  }
+
+  // 판단 불가 → 포함
+  return true;
+};
+
 export const calculatePayslip = (employee, insuranceRates, holidayEligibleNames, targetMonth) => {
   const { id, name, dailyHours } = employee;
 
-  // 총 근무시간 계산 (이번 달)
-  const totalHours = dailyHours.reduce((sum, d) => sum + d.hours, 0);
+  // targetMonth에 해당하는 날짜 엔트리만 필터링
+  const monthlyHours = dailyHours.filter((d) => isEntryInMonth(d, targetMonth));
+
+  // 총 근무시간 계산 (선택된 월만)
+  const totalHours = monthlyHours.reduce((sum, d) => sum + d.hours, 0);
 
   // 시급
   const hourlyWage = getHourlyWage(employee);
@@ -149,7 +193,7 @@ export const calculatePayslip = (employee, insuranceRates, holidayEligibleNames,
     id,
     name,
     targetMonth,
-    dailyHours,           // 날짜별 근무시간 배열
+    dailyHours: monthlyHours,  // 선택된 월의 날짜별 근무시간만
     totalHours,
     hourlyWage,
     basePay,
