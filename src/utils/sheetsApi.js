@@ -85,31 +85,26 @@ export const fetchWorkHoursData = async (targetMonth) => {
   const rows = table.rows || [];
   const cfg = SHEET_CONFIG.WORK_HOURS;
 
-  // 날짜 행(2행)에서 날짜 컬럼 전체 파싱
+  // 날짜 행(2행)에서 현재 월에 해당하는 열 정보 추출
   const dateRow = rows[cfg.DATE_ROW];
   const dayRow = rows[cfg.DAY_ROW];
-  const allCols = [];
+  const dateCols = [];
 
   for (let c = cfg.DATE_COL_START; c < (table.cols?.length || 0); c++) {
     const dateCell = getCell(dateRow, c);
     if (!dateCell) continue;
 
     const parsedDate = parseGvizDate(dateCell.v, dateCell.f);
+    if (!isInMonth(parsedDate, targetMonth.year, targetMonth.month)) continue;
+
     const dayCell = getCell(dayRow, c);
     const dayLabel = toString(dayCell);
     const label = parsedDate
       ? `${parsedDate.getMonth() + 1}/${parsedDate.getDate()}`
       : toString(dateCell) || String(c);
 
-    allCols.push({ colIndex: c, date: parsedDate, day: dayLabel, label });
+    dateCols.push({ colIndex: c, date: parsedDate, day: dayLabel, label });
   }
-
-  // 날짜 파싱에 성공한 컬럼이 하나라도 있으면 현재 월만 필터링
-  // 전혀 파싱되지 않으면 단일 월 시트로 간주하여 전체 포함
-  const anyParsed = allCols.some((col) => col.date !== null);
-  const dateCols = anyParsed
-    ? allCols.filter((col) => col.date !== null && isInMonth(col.date, targetMonth.year, targetMonth.month))
-    : allCols;
 
   // 직원 데이터 파싱 (5행부터)
   const employees = [];

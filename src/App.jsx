@@ -120,12 +120,22 @@ function App() {
     setCalcError(null);
   };
 
+  // ─── 월 변경 처리 ────────────────────────────────────────
+  const handleMonthChange = useCallback((newMonth) => {
+    setTargetMonth(newMonth);
+    setEmployeePayslip(null);
+    setAllPayslips(null);
+    setCalcError(null);
+  }, []);
+
   // ─── 화면 렌더링 ──────────────────────────────────────────
   switch (authState.type) {
     case 'employee':
       return (
         <EmployeePage
           payslip={employeePayslip}
+          targetMonth={targetMonth}
+          onMonthChange={handleMonthChange}
           onLogout={handleLogout}
           loading={sheetsLoading || calcLoading}
           error={sheetsError || calcError}
@@ -137,6 +147,7 @@ function App() {
         <AdminPage
           payslips={allPayslips}
           targetMonth={targetMonth}
+          onMonthChange={handleMonthChange}
           onLogout={handleLogout}
           loading={sheetsLoading || calcLoading}
           error={sheetsError || calcError}

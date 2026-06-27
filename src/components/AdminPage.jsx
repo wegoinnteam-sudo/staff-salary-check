@@ -5,11 +5,12 @@
 
 import { useState } from 'react';
 import PayslipDetail from './PayslipDetail.jsx';
+import MonthPicker from './MonthPicker.jsx';
 import { exportToExcel } from '../utils/excelExport.js';
 import { formatKRW, formatHours } from '../utils/payrollCalc.js';
 import { formatKoreanMonth } from '../utils/dateUtils.js';
 
-const AdminPage = ({ payslips, targetMonth, onLogout, loading, error }) => {
+const AdminPage = ({ payslips, targetMonth, onMonthChange, onLogout, loading, error }) => {
   // 상세 보기 모달용 선택된 직원
   const [selectedPayslip, setSelectedPayslip] = useState(null);
   const [isExporting, setIsExporting] = useState(false);
@@ -42,7 +43,7 @@ const AdminPage = ({ payslips, targetMonth, onLogout, loading, error }) => {
             </div>
           </div>
           <div className="page-header-right">
-            <span className="month-badge">{monthLabel}</span>
+            <MonthPicker targetMonth={targetMonth} onMonthChange={onMonthChange} />
             <button className="btn btn-ghost" onClick={onLogout}>
               로그아웃
             </button>

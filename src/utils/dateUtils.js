@@ -36,40 +36,47 @@ export const parseGvizDate = (value, formatted) => {
     }
   }
 
-  // 2) gviz가 숫자 타임스탬프(ms)로 반환하는 경우
+  // 2) gviz 숫자 타임스탬프(ms, > 1e12)
   if (typeof value === 'number' && value > 1e12) {
     const d = new Date(value);
     if (!isNaN(d.getTime())) return d;
   }
 
+  // 3) Google Sheets / Excel 시리얼 날짜 (40000~80000 ≈ 2010~2119년)
+  if (typeof value === 'number' && value >= 40000 && value <= 80000) {
+    // 25569 = 1970-01-01의 Excel 시리얼 값
+    const d = new Date(Math.round((value - 25569) * 86400000));
+    if (!isNaN(d.getTime())) return d;
+  }
+
   const str = formatted || (typeof value === 'string' ? value : String(value ?? ''));
 
-  // 3) ISO: "2026-06-01" 또는 "2026/06/01" (YYYY-MM-DD)
+  // 4) ISO: "2026-06-01" 또는 "2026/06/01" (YYYY-MM-DD)
   const isoMatch = str.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
   if (isoMatch) {
     return new Date(parseInt(isoMatch[1]), parseInt(isoMatch[2]) - 1, parseInt(isoMatch[3]));
   }
 
-  // 4) 한국 연월일 포함: "2026. 6. 1." 또는 "2026년 6월 1일"
+  // 5) 한국 연월일: "2026. 6. 1." 또는 "2026년 6월 1일"
   const krFullMatch = str.match(/(\d{4})[\.\s년]+(\d{1,2})[\.\s월]+(\d{1,2})/);
   if (krFullMatch) {
     return new Date(parseInt(krFullMatch[1]), parseInt(krFullMatch[2]) - 1, parseInt(krFullMatch[3]));
   }
 
-  // 5) 한국 월/일: "6월 1일"
+  // 6) 한국 월/일: "6월 1일"
   const krMatch = str.match(/(\d{1,2})월\s*(\d{1,2})일/);
   if (krMatch) {
     const { year } = getCurrentKoreanMonth();
     return new Date(year, parseInt(krMatch[1]) - 1, parseInt(krMatch[2]));
   }
 
-  // 6) US 날짜: "6/1/2026" (M/D/YYYY)
+  // 7) US: "6/1/2026" (M/D/YYYY)
   const usMatch = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if (usMatch) {
     return new Date(parseInt(usMatch[3]), parseInt(usMatch[1]) - 1, parseInt(usMatch[2]));
   }
 
-  // 7) 슬래시 월/일: "6/1" (M/D)
+  // 8) 슬래시 월/일: "6/1" (M/D)
   const slashMatch = str.match(/^(\d{1,2})\/(\d{1,2})$/);
   if (slashMatch) {
     const { year } = getCurrentKoreanMonth();
@@ -87,7 +94,7 @@ export const parseGvizDate = (value, formatted) => {
  * @returns {boolean}
  */
 export const isInMonth = (date, year, month) => {
-  if (!date) return false;
+  if (!date) return true; // 파싱 불가 날짜는 포함 (단일 월 시트 호환)
   return date.getFullYear() === year && date.getMonth() + 1 === month;
 };
 
