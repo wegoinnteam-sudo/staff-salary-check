@@ -3,7 +3,19 @@
 // ============================================================
 
 import { formatKRW, formatHours } from '../utils/payrollCalc.js';
-import { formatKoreanMonth } from '../utils/dateUtils.js';
+import { formatKoreanMonth, parseGvizDate } from '../utils/dateUtils.js';
+
+const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
+
+// d.day가 없을 때 date 또는 label에서 요일을 계산합니다
+const getDayName = (d) => {
+  if (d.day) return d.day;
+  if (d.date instanceof Date && !isNaN(d.date)) return DAY_NAMES[d.date.getDay()];
+  // label에서 날짜 파싱 시도
+  const parsed = parseGvizDate(d.label, d.label);
+  if (parsed) return DAY_NAMES[parsed.getDay()];
+  return '';
+};
 
 const PayslipDetail = ({ payslip, onClose }) => {
   const {
@@ -69,7 +81,7 @@ const PayslipDetail = ({ payslip, onClose }) => {
                 className={`daily-cell ${d.hours > 0 ? 'daily-cell--active' : 'daily-cell--empty'}`}
               >
                 <span className="daily-date">{d.label}</span>
-                {d.day && <span className="daily-day">{d.day}</span>}
+                <span className="daily-day">{getDayName(d)}</span>
                 <span className="daily-hours">
                   {d.hours > 0 ? `${d.hours}h` : '-'}
                 </span>

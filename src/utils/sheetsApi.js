@@ -98,7 +98,13 @@ export const fetchWorkHoursData = async (targetMonth) => {
     if (!isInMonth(parsedDate, targetMonth.year, targetMonth.month)) continue;
 
     const dayCell = getCell(dayRow, c);
-    const dayLabel = toString(dayCell);
+    let dayLabel = toString(dayCell);
+
+    // 요일 정보가 없고 날짜가 파싱됐으면 날짜에서 요일을 계산
+    if (!dayLabel && parsedDate) {
+      dayLabel = ['일', '월', '화', '수', '목', '금', '토'][parsedDate.getDay()];
+    }
+
     const label = parsedDate
       ? `${parsedDate.getMonth() + 1}/${parsedDate.getDate()}`
       : toString(dateCell) || String(c);
@@ -116,6 +122,9 @@ export const fetchWorkHoursData = async (targetMonth) => {
     const id = toString(idCell);
     const name = toString(nameCell);
     if (!id && !name) continue; // 빈 행 스킵
+
+    // "4hr", "6hr", "5hr" 등 근무시간 레이블은 직원이 아니므로 제외
+    if (/^\d+(\.\d+)?\s*hr$/i.test(name) || /^\d+(\.\d+)?\s*hr$/i.test(id)) continue;
 
     // 이번 달 날짜별 근무시간 추출
     const dailyHours = dateCols.map((dc) => {
