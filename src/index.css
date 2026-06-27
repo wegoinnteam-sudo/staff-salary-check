@@ -1,13 +1,1042 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* ============================================================
+   Wegoinn Hostel 급여명세서 - 전역 스타일
+   따뜻하고 친근한 호스텔 느낌의 디자인
+   ============================================================ */
+
+/* Google Fonts - Noto Sans KR (한국어 지원) */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap');
+
+/* ─────────────────────────────────────────
+   CSS 변수 (색상/간격/반경)
+───────────────────────────────────────── */
+:root {
+  --primary: #E8604C;
+  --primary-dark: #C4503D;
+  --primary-light: #F5877A;
+  --primary-bg: #FFF1EE;
+  --secondary: #FF9A7B;
+  --teal: #2EC4B6;
+  --teal-light: #E0F7F5;
+  --accent: #FFD166;
+
+  --bg: #FFF8F2;
+  --surface: #FFFFFF;
+  --surface-2: #FFF3EE;
+  --border: #F0E0DA;
+  --border-strong: #DDC8C2;
+
+  --text-1: #1A1A2E;
+  --text-2: #4A4A6A;
+  --text-muted: #9CA3AF;
+  --text-danger: #DC2626;
+  --text-success: #059669;
+
+  --shadow-sm: 0 2px 8px rgba(232, 96, 76, 0.08);
+  --shadow-md: 0 4px 16px rgba(232, 96, 76, 0.12);
+  --shadow-lg: 0 8px 32px rgba(232, 96, 76, 0.16);
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+
+  --header-h: 64px;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* ─────────────────────────────────────────
+   기본 리셋 & 폰트
+───────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background-color: var(--bg);
+  color: var(--text-1);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* ─────────────────────────────────────────
+   공통 버튼
+───────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: var(--radius-full);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(232, 96, 76, 0.35);
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-dark);
+  box-shadow: 0 6px 16px rgba(232, 96, 76, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-2);
+  border: 1.5px solid var(--border-strong);
+}
+.btn-ghost:hover:not(:disabled) {
+  background: var(--surface-2);
+  border-color: var(--primary-light);
+  color: var(--primary);
+}
+
+.btn-excel {
+  background: linear-gradient(135deg, #1D6F42, #217346);
+  color: #fff;
+  font-size: 15px;
+  padding: 12px 28px;
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 12px rgba(29, 111, 66, 0.3);
+}
+.btn-excel:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(29, 111, 66, 0.4);
+}
+
+.btn-full {
+  width: 100%;
+  justify-content: center;
+  padding: 14px;
+  font-size: 16px;
+}
+
+.btn-icon {
+  background: var(--surface-2);
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-2);
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.btn-icon:hover {
+  background: var(--border);
+}
+
+/* ─────────────────────────────────────────
+   스피너 (로딩)
+───────────────────────────────────────── */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.spinner-sm {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─────────────────────────────────────────
+   텍스트 유틸리티
+───────────────────────────────────────── */
+.text-muted  { color: var(--text-muted); }
+.text-danger { color: var(--text-danger); }
+.text-bold   { font-weight: 700; }
+
+/* ─────────────────────────────────────────
+   배지
+───────────────────────────────────────── */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 700;
+}
+.badge--teal   { background: var(--teal-light); color: var(--teal); }
+.badge--orange { background: var(--primary-bg); color: var(--primary); }
+
+.tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  background: var(--teal-light);
+  color: var(--teal);
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* ─────────────────────────────────────────
+   구분선
+───────────────────────────────────────── */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 10px 0;
+}
+
+/* ─────────────────────────────────────────
+   로그인 페이지
+───────────────────────────────────────── */
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #FFF8F2 0%, #FFE8E0 50%, #FFF0E8 100%);
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-card {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 48px 40px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  z-index: 1;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.login-logo {
+  font-size: 52px;
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.login-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 4px;
+}
+
+.login-subtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.form-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 16px;
+  color: var(--text-1);
+  background: var(--surface);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+.form-input::placeholder {
+  color: var(--text-muted);
+}
+
+.form-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(232, 96, 76, 0.1);
+}
+
+.form-input:disabled {
+  background: var(--bg);
+  opacity: 0.7;
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 14px;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: var(--radius-sm);
+  color: #B91C1C;
+  font-size: 14px;
+}
+
+.info-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--primary-bg);
+  border-radius: var(--radius-sm);
+  color: var(--primary);
+  font-size: 14px;
+}
+
+.login-hint {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.8;
+}
+
+/* 배경 장식 요소 */
+.login-deco {
+  position: absolute;
+  font-size: 60px;
+  opacity: 0.12;
+  pointer-events: none;
+  user-select: none;
+}
+.login-deco-1 { top: 8%; right: 5%; transform: rotate(-15deg); }
+.login-deco-2 { bottom: 10%; left: 4%; transform: rotate(10deg); }
+.login-deco-3 { top: 40%; left: 2%; font-size: 40px; }
+
+/* ─────────────────────────────────────────
+   페이지 레이아웃 (직원/관리자 공통)
+───────────────────────────────────────── */
+.page-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+
+.page-header {
+  height: var(--header-h);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.page-header--admin {
+  background: linear-gradient(135deg, var(--primary) 0%, #C4503D 100%);
+  border-bottom: none;
+}
+
+.page-header--admin .brand-name,
+.page-header--admin .brand-icon {
+  color: #fff;
+}
+
+.page-header--admin .btn-ghost {
+  border-color: rgba(255,255,255,0.4);
+  color: rgba(255,255,255,0.9);
+}
+.page-header--admin .btn-ghost:hover {
+  background: rgba(255,255,255,0.15);
+  border-color: rgba(255,255,255,0.7);
+  color: #fff;
+}
+
+.page-header--admin .month-badge {
+  background: rgba(255,255,255,0.2);
+  color: #fff;
+}
+
+.page-header-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  height: 100%;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.page-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-icon {
+  font-size: 24px;
+}
+
+.brand-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.admin-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 10px;
+  background: rgba(255,255,255,0.25);
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  vertical-align: middle;
+}
+
+.page-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.month-badge {
+  padding: 5px 14px;
+  background: var(--primary-bg);
+  color: var(--primary);
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.page-main {
+  flex: 1;
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 32px 20px 60px;
+}
+
+/* ─────────────────────────────────────────
+   상태 카드 (로딩/에러/빈 상태)
+───────────────────────────────────────── */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 80px 20px;
+  color: var(--text-2);
+  font-size: 15px;
+}
+
+.error-card,
+.empty-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 60px 20px;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+  max-width: 480px;
+  margin: 40px auto;
+}
+
+.error-icon,
+.empty-icon {
+  font-size: 48px;
+}
+
+.error-card h3,
+.empty-card h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-1);
+}
+
+.error-card p,
+.empty-card p {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+/* ─────────────────────────────────────────
+   직원 급여명세서 페이지
+───────────────────────────────────────── */
+.payslip-wrapper {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.payslip-intro {
+  margin-bottom: 24px;
+}
+
+.payslip-intro h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-1);
+  margin-bottom: 4px;
+}
+
+.payslip-intro p {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+/* ─────────────────────────────────────────
+   급여명세서 카드 (PayslipDetail)
+───────────────────────────────────────── */
+.payslip {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.payslip-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 28px 28px 20px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: #fff;
+}
+
+.payslip-header-left {
+  flex: 1;
+}
+
+.payslip-badge {
+  display: inline-block;
+  padding: 3px 12px;
+  background: rgba(255,255,255,0.2);
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.payslip-name {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.payslip-meta {
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+/* 실수령액 하이라이트 */
+.payslip-highlight {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 28px;
+  background: linear-gradient(135deg, #FFF3EE, #FFE8E0);
+  border-bottom: 1px solid var(--border);
+}
+
+.payslip-highlight-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.payslip-highlight-amount {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+/* 섹션 */
+.payslip-section {
+  padding: 20px 28px;
+  border-bottom: 1px solid var(--border);
+}
+
+.payslip-section:last-of-type {
+  border-bottom: none;
+}
+
+.payslip-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-2);
+  margin-bottom: 14px;
+  letter-spacing: 0.02em;
+}
+
+.payslip-section-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 행 (label: value) */
+.payslip-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.payslip-row--bold {
+  font-size: 15px;
+  margin-top: 4px;
+}
+
+.payslip-row-label {
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.payslip-row-value {
+  font-weight: 500;
+  text-align: right;
+}
+
+/* 빈 상태 (섹션 내) */
+.empty-state-sm {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 12px 0;
+}
+
+/* 날짜별 근무시간 그리드 */
+.daily-hours-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  gap: 6px;
+}
+
+.daily-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 4px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  text-align: center;
+  gap: 2px;
+}
+
+.daily-cell--active {
+  background: var(--primary-bg);
+  border: 1px solid var(--primary-light);
+}
+
+.daily-cell--empty {
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.daily-date {
+  font-weight: 600;
+  color: var(--text-1);
+  font-size: 11px;
+}
+
+.daily-day {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.daily-hours {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--primary);
+}
+
+.daily-cell--empty .daily-hours {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+/* 최종 합계 영역 */
+.payslip-total {
+  padding: 20px 28px;
+  background: var(--surface-2);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.payslip-total-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+.payslip-total-row--final {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--primary);
+  padding-top: 10px;
+  border-top: 2px solid var(--primary-light);
+  margin-top: 4px;
+}
+
+/* 공제 기준 안내 */
+.payslip-note {
+  padding: 14px 28px;
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  line-height: 1.7;
+}
+
+/* ─────────────────────────────────────────
+   관리자 대시보드
+───────────────────────────────────────── */
+
+/* 요약 배너 */
+.admin-summary-banner {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.admin-summary-item {
+  flex: 1;
+  min-width: 160px;
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+}
+
+.admin-summary-num {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.admin-summary-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* 액션 영역 (Excel 버튼) */
+.admin-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.admin-actions-hint {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* 직원 카드 그리드 */
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+/* 직원 요약 카드 */
+.emp-card {
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  border: 1.5px solid var(--border);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.emp-card:hover {
+  border-color: var(--primary-light);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+}
+
+.emp-card:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.emp-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.emp-avatar {
+  width: 42px;
+  height: 42px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.emp-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-1);
+}
+
+.emp-id {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.emp-card-badges {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.emp-card-body {
+  padding: 14px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.emp-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+
+.emp-stat--highlight {
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  font-weight: 700;
+}
+
+.emp-stat--highlight .emp-stat-label {
+  font-size: 15px;
+  color: var(--text-1);
+}
+
+.emp-stat--highlight .emp-stat-value {
+  font-size: 16px;
+  color: var(--primary);
+}
+
+.emp-stat-label {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.emp-stat-value {
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.emp-card-footer {
+  padding: 10px 20px;
+  background: var(--bg);
+  font-size: 12px;
+  color: var(--primary);
+  font-weight: 600;
+  text-align: right;
+}
+
+/* ─────────────────────────────────────────
+   모달
+───────────────────────────────────────── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 26, 46, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.modal-content {
+  width: 100%;
+  max-width: 640px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  animation: modalIn 0.25s ease;
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ─────────────────────────────────────────
+   반응형 (모바일)
+───────────────────────────────────────── */
+@media (max-width: 600px) {
+  .login-card {
+    padding: 36px 24px;
+  }
+
+  .page-header-inner {
+    padding: 0 16px;
+  }
+
+  .brand-name {
+    font-size: 16px;
+  }
+
+  .page-main {
+    padding: 20px 16px 60px;
+  }
+
+  .admin-summary-banner {
+    gap: 10px;
+  }
+
+  .admin-summary-item {
+    min-width: calc(50% - 5px);
+    padding: 16px;
+  }
+
+  .admin-summary-num {
+    font-size: 17px;
+  }
+
+  .admin-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .payslip-header {
+    padding: 20px 20px 16px;
+  }
+
+  .payslip-name {
+    font-size: 20px;
+  }
+
+  .payslip-highlight {
+    padding: 16px 20px;
+  }
+
+  .payslip-highlight-amount {
+    font-size: 22px;
+  }
+
+  .payslip-section {
+    padding: 16px 20px;
+  }
+
+  .payslip-total {
+    padding: 16px 20px;
+  }
+
+  .payslip-note {
+    padding: 12px 20px;
+  }
+
+  .daily-hours-grid {
+    grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+    gap: 4px;
+  }
+
+  .modal-content {
+    max-height: calc(100vh - 20px);
+  }
+
+  .month-badge {
+    display: none; /* 모바일 헤더 공간 절약 */
+  }
+}
+
+@media (max-width: 400px) {
+  .admin-actions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .btn-excel {
+    width: 100%;
+    justify-content: center;
+  }
 }
