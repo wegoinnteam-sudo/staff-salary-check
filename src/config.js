@@ -23,7 +23,7 @@ export const FREELANCER_IDS = ['000905'];
 
 // 기본 시급 (단위: 원)
 // TODO: 직원별 개인 시급 데이터 소스가 확정되면 시트에서 불러오도록 수정
-export const DEFAULT_HOURLY_WAGE = 10030;
+export const DEFAULT_HOURLY_WAGE = 10320;
 
 // 4대보험 전체 공제 적용 기준
 export const INSURANCE_THRESHOLD = {
