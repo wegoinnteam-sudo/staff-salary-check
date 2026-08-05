@@ -21,6 +21,13 @@ export const MASTER_PASSWORD = '999222';
 // 해당 직원은 4대보험 대신 소득세 3% + 지방소득세 0.3% = 3.3% 공제
 export const FREELANCER_IDS = ['000905'];
 
+// 프리랜서 → 4대보험 전환 시점
+// 지정된 연/월부터는 FREELANCER_IDS에 있어도 다른 직원과 동일하게 4대보험 적용
+// (해당 연/월 이전 데이터는 계속 3.3% 프리랜서로 계산됨)
+export const FREELANCER_TO_INSURANCE_TRANSITIONS = {
+  '000905': { year: 2026, month: 7 }, // 조혜민: 2026년 7월분부터 4대보험 전환
+};
+
 // 기본 시급 (단위: 원)
 // TODO: 직원별 개인 시급 데이터 소스가 확정되면 시트에서 불러오도록 수정
 export const DEFAULT_HOURLY_WAGE = 10320;

@@ -8,6 +8,7 @@ import {
   INSURANCE_THRESHOLD,
   INSURANCE_ITEM_KEYS,
   FREELANCER_IDS,
+  FREELANCER_TO_INSURANCE_TRANSITIONS,
 } from '../config.js';
 
 // ─────────────────────────────────────────────
@@ -154,6 +155,19 @@ const isEntryInMonth = (entry, { year, month }) => {
   return true;
 };
 
+/**
+ * 프리랜서(3.3%) → 4대보험 전환 시점이 지났는지 확인합니다.
+ * 전환 시점이 지정되지 않은 직원은 항상 프리랜서 상태를 유지합니다.
+ */
+const isPastFreelancerTransition = (id, { year, month }) => {
+  const transition = FREELANCER_TO_INSURANCE_TRANSITIONS[String(id).trim()];
+  if (!transition) return false;
+  return (
+    year > transition.year ||
+    (year === transition.year && month >= transition.month)
+  );
+};
+
 export const calculatePayslip = (employee, insuranceRates, holidayEligibleNames, targetMonth) => {
   const { id, name, dailyHours } = employee;
 
@@ -180,7 +194,10 @@ export const calculatePayslip = (employee, insuranceRates, holidayEligibleNames,
   const grossPay = basePay + holidayPay;
 
   // 프리랜서 여부 확인 (3.3% 원천징수 대상)
-  const isFreelancer = FREELANCER_IDS.includes(String(id).trim());
+  // 전환 시점(FREELANCER_TO_INSURANCE_TRANSITIONS)이 지난 경우 4대보험로 계산
+  const isFreelancer =
+    FREELANCER_IDS.includes(String(id).trim()) &&
+    !isPastFreelancerTransition(id, targetMonth);
 
   let deductions;
   let isFullInsurance = false;
