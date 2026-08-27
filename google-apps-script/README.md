@@ -1,14 +1,14 @@
 # 직원 로그인 ID API 설치
 
-이 API는 원본 `time sheet`의 B열을 사용하지 않습니다. 같은 스프레드시트에 `직원 로그인` 탭을 만들고, `원본 행 · 직원 이름 · 로그인 ID`만 저장합니다.
+이 API는 원본 `time sheet`의 B열과 별도 Google Sheet 탭을 모두 사용하지 않습니다. 직원 로그인 ID는 Apps Script 내부 전용 저장소에만 저장됩니다.
 
-1. [대상 Google Sheet](https://docs.google.com/spreadsheets/d/1a8jUbszQLpq-mzbfIV4oPgxrGxFCrFAnc4lhlzVzL-w/edit)에서 **확장 프로그램 → Apps Script**를 엽니다.
+1. [Google Apps Script](https://script.google.com/home)에서 **새 프로젝트**를 만듭니다. 기존 시트에 연결된 Apps Script 프로젝트를 사용해도 됩니다.
 2. 기본 코드를 지우고 [Code.gs](./Code.gs)의 내용을 붙여 넣은 뒤 저장합니다.
 3. **배포 → 새 배포 → 유형: 웹 앱**을 선택합니다.
 4. 실행 사용자: **나**, 액세스 권한: **모든 사용자**를 선택해 배포하고 권한을 승인합니다.
 5. 생성된 웹 앱 URL 중 `/exec`로 끝나는 주소를 복사합니다.
 6. `src/config.js`의 `EMPLOYEE_AUTH_API_URL`에 그 주소를 붙여 넣고 앱을 다시 배포합니다.
 
-관리자가 직원 관리에서 ID를 저장하면, Apps Script가 `직원 로그인` 탭을 자동 생성하고 ID를 저장합니다. 이 탭의 `원본 행` 값은 원본 근무시간 시트에서 직원 이름이 있는 행을 가리키므로, 같은 이름의 직원도 구분합니다.
+관리자가 직원 관리에서 ID를 저장하면, Apps Script의 내부 저장소에 `원본 행 · 직원 이름 · 로그인 ID`가 저장됩니다. 이 값은 Google Sheet에서 보이지 않으며, 같은 이름의 직원도 원본 행으로 구분합니다.
 
 > 현재 로그인 방식은 ‘직원 ID’만으로 조회하는 간단한 구조입니다. 민감한 급여 정보를 강하게 보호해야 한다면, 직원별 비밀번호·서버 인증을 별도로 추가해야 합니다.
