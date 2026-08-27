@@ -66,7 +66,7 @@ const toString = (cell) => {
  * @param {{ year: number, month: number }} targetMonth - 조회 월 (한국시간 기준)
  * @returns {Promise<{ employees: Employee[], dateCols: DateCol[] }>}
  *
- * Employee: { id, name, rowIndex, dailyHours: [{ date, day, colIndex, hours }] }
+ * Employee: { name, rowIndex, dailyHours: [{ date, day, colIndex, hours }] }
  * DateCol:  { colIndex, date, day, label }
  */
 export const fetchWorkHoursData = async (targetMonth) => {
@@ -116,15 +116,13 @@ export const fetchWorkHoursData = async (targetMonth) => {
   const employees = [];
   for (let r = cfg.DATA_START_ROW; r < rows.length; r++) {
     const row = rows[r];
-    const idCell = getCell(row, cfg.EMPLOYEE_ID_COL);
     const nameCell = getCell(row, cfg.EMPLOYEE_NAME_COL);
 
-    const id = toString(idCell);
     const name = toString(nameCell);
-    if (!id && !name) continue; // 빈 행 스킵
+    if (!name) continue; // C열 이름이 없는 행 스킵
 
     // "4hr", "4hrs", "6hr", "6hrs" 등 근무시간 레이블은 직원이 아니므로 제외
-    if (/^\d+(\.\d+)?\s*hrs?$/i.test(name) || /^\d+(\.\d+)?\s*hrs?$/i.test(id)) continue;
+    if (/^\d+(\.\d+)?\s*hrs?$/i.test(name)) continue;
 
     // 이번 달 날짜별 근무시간 추출
     const dailyHours = dateCols.map((dc) => {
@@ -138,7 +136,7 @@ export const fetchWorkHoursData = async (targetMonth) => {
       };
     });
 
-    employees.push({ id, name, rowIndex: r, dailyHours });
+    employees.push({ name, rowIndex: r, dailyHours });
   }
 
   return { employees, dateCols };

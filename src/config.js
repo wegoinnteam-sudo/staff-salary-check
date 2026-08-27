@@ -14,18 +14,24 @@ export const SHEET_IDS = {
 // ⚠️ 현재 첫 번째 탭이 "Reception Notice"인 경우, 올바른 근무시간 탭 이름으로 변경 필요
 export const WORK_HOURS_SHEET_NAME = 'time sheet';
 
+// 직원 로그인 ID를 관리하는 Google Apps Script 웹 앱 URL
+// google-apps-script/Code.gs 배포 후 생성된 /exec URL을 입력하세요.
+export const EMPLOYEE_AUTH_API_URL = '';
+
 // 관리자 마스터 비밀번호
 export const MASTER_PASSWORD = '999222';
 
 // 프리랜서(3.3% 원천징수) 직원 ID 목록
 // 해당 직원은 4대보험 대신 소득세 3% + 지방소득세 0.3% = 3.3% 공제
 export const FREELANCER_IDS = ['000905'];
+export const FREELANCER_NAMES = ['조혜민'];
 
 // 프리랜서 → 4대보험 전환 시점
 // 지정된 연/월부터는 FREELANCER_IDS에 있어도 다른 직원과 동일하게 4대보험 적용
 // (해당 연/월 이전 데이터는 계속 3.3% 프리랜서로 계산됨)
 export const FREELANCER_TO_INSURANCE_TRANSITIONS = {
   '000905': { year: 2026, month: 7 }, // 조혜민: 2026년 7월분부터 4대보험 전환
+  '조혜민': { year: 2026, month: 7 },
 };
 
 // 기본 시급 (단위: 원)
@@ -41,7 +47,6 @@ export const INSURANCE_THRESHOLD = {
 // Google Sheets 컬럼 인덱스 (0-based, gviz API 기준)
 export const SHEET_CONFIG = {
   WORK_HOURS: {
-    EMPLOYEE_ID_COL: 1,   // B열: 직원 ID
     EMPLOYEE_NAME_COL: 2, // C열: 직원 이름
     DATA_START_ROW: 4,    // 5행부터 직원 데이터 (0-indexed: 4)
     DAY_ROW: 0,           // 1행: 요일 (0-indexed: 0)

@@ -3,17 +3,18 @@
 // 전체 직원 급여 현황 조회 + Excel 내보내기
 // ============================================================
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import PayslipDetail from './PayslipDetail.jsx';
 import MonthPicker from './MonthPicker.jsx';
 import { exportToExcel } from '../utils/excelExport.js';
 import { formatKRW, formatHours } from '../utils/payrollCalc.js';
 import { formatKoreanMonth } from '../utils/dateUtils.js';
 
-const AdminPage = ({ payslips, targetMonth, onMonthChange, onLogout, loading, error }) => {
+const AdminPage = ({ payslips, targetMonth, onMonthChange, onLogout, loading, error, employees, loginApiError, onEmployeeLoginIdSave }) => {
   // 상세 보기 모달용 선택된 직원
   const [selectedPayslip, setSelectedPayslip] = useState(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [view, setView] = useState('payroll');
 
   const monthLabel = formatKoreanMonth(targetMonth.year, targetMonth.month);
 
@@ -43,7 +44,10 @@ const AdminPage = ({ payslips, targetMonth, onMonthChange, onLogout, loading, er
             </div>
           </div>
           <div className="page-header-right">
-            <MonthPicker targetMonth={targetMonth} onMonthChange={onMonthChange} />
+            <button className="btn btn-ghost" onClick={() => setView(view === 'employees' ? 'payroll' : 'employees')}>
+              {view === 'employees' ? '급여 현황' : '직원 관리'}
+            </button>
+            {view === 'payroll' && <MonthPicker targetMonth={targetMonth} onMonthChange={onMonthChange} />}
             <button className="btn btn-ghost" onClick={onLogout}>
               로그아웃
             </button>
@@ -74,7 +78,15 @@ const AdminPage = ({ payslips, targetMonth, onMonthChange, onLogout, loading, er
         )}
 
         {/* 데이터 로드 완료 */}
-        {!loading && !error && (
+        {!loading && !error && view === 'employees' && (
+          <EmployeeLoginManager
+            employees={employees}
+            apiError={loginApiError}
+            onSave={onEmployeeLoginIdSave}
+          />
+        )}
+
+        {!loading && !error && view === 'payroll' && (
           <>
             {/* 관리자 요약 배너 */}
             <div className="admin-summary-banner">
@@ -159,6 +171,59 @@ const AdminPage = ({ payslips, targetMonth, onMonthChange, onLogout, loading, er
         </Modal>
       )}
     </div>
+  );
+};
+
+const EmployeeLoginManager = ({ employees, apiError, onSave }) => {
+  const [drafts, setDrafts] = useState({});
+  const [message, setMessage] = useState('');
+  const [savingRow, setSavingRow] = useState(null);
+
+  useEffect(() => {
+    setDrafts(Object.fromEntries((employees || []).map((employee) => [employee.rowIndex, employee.id || ''])));
+  }, [employees]);
+
+  const handleSave = async (employee) => {
+    setSavingRow(employee.rowIndex);
+    setMessage('');
+    try {
+      await onSave(employee, drafts[employee.rowIndex]);
+      setMessage(`${employee.name} 직원의 로그인 ID를 저장했습니다.`);
+    } catch (error) {
+      setMessage(error.message || '로그인 ID를 저장하지 못했습니다.');
+    } finally {
+      setSavingRow(null);
+    }
+  };
+
+  return (
+    <section className="employee-manager">
+      <div className="employee-manager-heading">
+        <h2>직원 관리</h2>
+        <p>C열의 직원 이름을 기준으로 로그인 ID를 부여합니다. 급여·근무 데이터는 변경되지 않습니다.</p>
+      </div>
+      {apiError && <div className="error-message">⚠️ 로그인 ID 데이터를 불러오지 못했습니다: {apiError}</div>}
+      {message && <p className={message.includes('저장했습니다') ? 'save-message' : 'save-message save-message--error'}>{message}</p>}
+      <div className="employee-manager-list">
+        {(employees || []).map((employee) => (
+          <div className="employee-manager-row" key={employee.rowIndex}>
+            <span className="employee-manager-name">{employee.name}</span>
+            <input
+              className="form-input employee-id-input"
+              type="text"
+              placeholder="로그인 ID 입력"
+              value={drafts[employee.rowIndex] ?? ''}
+              onChange={(event) => setDrafts((current) => ({ ...current, [employee.rowIndex]: event.target.value }))}
+              onKeyDown={(event) => event.key === 'Enter' && handleSave(employee)}
+              aria-label={`${employee.name} 로그인 ID`}
+            />
+            <button className="btn btn-primary" disabled={savingRow === employee.rowIndex} onClick={() => handleSave(employee)}>
+              {savingRow === employee.rowIndex ? '저장 중...' : '저장'}
+            </button>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 };
 

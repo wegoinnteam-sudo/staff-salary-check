@@ -8,6 +8,7 @@ import {
   INSURANCE_THRESHOLD,
   INSURANCE_ITEM_KEYS,
   FREELANCER_IDS,
+  FREELANCER_NAMES,
   FREELANCER_TO_INSURANCE_TRANSITIONS,
 } from '../config.js';
 
@@ -170,6 +171,8 @@ const isPastFreelancerTransition = (id, { year, month }) => {
 
 export const calculatePayslip = (employee, insuranceRates, holidayEligibleNames, targetMonth) => {
   const { id, name, dailyHours } = employee;
+  // 로그인 ID는 관리 화면에서 바뀔 수 있으므로, 기존 공제 전환 판정은 직원 이름으로 유지합니다.
+  const payrollIdentity = FREELANCER_NAMES.includes(String(name).trim()) ? String(name).trim() : id;
 
   // targetMonth에 해당하는 날짜 엔트리만 필터링
   const monthlyHours = dailyHours.filter((d) => isEntryInMonth(d, targetMonth));
@@ -196,8 +199,8 @@ export const calculatePayslip = (employee, insuranceRates, holidayEligibleNames,
   // 프리랜서 여부 확인 (3.3% 원천징수 대상)
   // 전환 시점(FREELANCER_TO_INSURANCE_TRANSITIONS)이 지난 경우 4대보험로 계산
   const isFreelancer =
-    FREELANCER_IDS.includes(String(id).trim()) &&
-    !isPastFreelancerTransition(id, targetMonth);
+    (FREELANCER_IDS.includes(String(id).trim()) || FREELANCER_NAMES.includes(String(name).trim())) &&
+    !isPastFreelancerTransition(payrollIdentity, targetMonth);
 
   let deductions;
   let isFullInsurance = false;

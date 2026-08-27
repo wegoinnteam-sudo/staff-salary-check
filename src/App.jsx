@@ -2,13 +2,14 @@
 // 🏠 Wegoinn Hostel 급여명세서 앱 - 메인 컴포넌트
 // ============================================================
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import LoginPage from './components/LoginPage.jsx';
 import EmployeePage from './components/EmployeePage.jsx';
 import AdminPage from './components/AdminPage.jsx';
 import { fetchAllData } from './utils/sheetsApi.js';
 import { calculatePayslip, calculateAllPayslips } from './utils/payrollCalc.js';
 import { getCurrentKoreanMonth } from './utils/dateUtils.js';
+import { attachLoginIds, fetchEmployeeLoginIds, saveEmployeeLoginId } from './utils/employeeAuthApi.js';
 import './App.css';
 
 function App() {
@@ -22,6 +23,13 @@ function App() {
   const [sheetsData, setSheetsData] = useState(null);
   const [sheetsLoading, setSheetsLoading] = useState(true);
   const [sheetsError, setSheetsError] = useState(null);
+  const [loginRecords, setLoginRecords] = useState([]);
+  const [loginApiError, setLoginApiError] = useState(null);
+
+  const employees = useMemo(
+    () => attachLoginIds(sheetsData?.employees, loginRecords),
+    [sheetsData, loginRecords]
+  );
 
   // 계산된 급여 데이터
   const [employeePayslip, setEmployeePayslip] = useState(null);
@@ -36,8 +44,15 @@ function App() {
       setSheetsError(null);
       setSheetsData(null); // 이전 달 데이터 초기화
       try {
-        const data = await fetchAllData(targetMonth);
+        const [data, records] = await Promise.all([
+          fetchAllData(targetMonth),
+          fetchEmployeeLoginIds().catch((error) => {
+            setLoginApiError(error.message);
+            return [];
+          }),
+        ]);
         setSheetsData(data);
+        setLoginRecords(records);
       } catch (e) {
         setSheetsError(getErrorMessage(e.message));
       } finally {
@@ -58,19 +73,15 @@ function App() {
       setCalcError(null);
       try {
         if (authState.type === 'admin') {
-          // B열(ID)이 없는 직원은 관리자 화면에서 제외
-          const employeesWithId = sheetsData.employees.filter(
-            (e) => String(e.id || '').trim() !== ''
-          );
           const payslips = calculateAllPayslips(
-            employeesWithId,
+            employees,
             sheetsData.insuranceRates,
             sheetsData.holidayEligibleNames,
             targetMonth
           );
           setAllPayslips(payslips);
         } else if (authState.type === 'employee' && authState.employee) {
-          const empData = sheetsData.employees.find(
+          const empData = employees.find(
             (e) => String(e.id).trim() === String(authState.employee.id).trim()
           );
           if (!empData) {
@@ -94,7 +105,24 @@ function App() {
     compute();
   // authState.type과 authState.employee.id가 바뀔 때, 또는 sheetsData가 처음 로드될 때 실행
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sheetsData, authState.type, authState.employee?.id, targetMonth]);
+  }, [sheetsData, employees, authState.type, authState.employee?.id, targetMonth]);
+
+  const handleEmployeeLoginIdSave = useCallback(async (employee, loginId) => {
+    const normalizedId = String(loginId || '').trim();
+    const duplicate = employees.find(
+      (item) => item.rowIndex !== employee.rowIndex && item.id === normalizedId && normalizedId
+    );
+    if (duplicate) throw new Error(`${duplicate.name} 직원이 이미 사용 중인 ID입니다.`);
+
+    await saveEmployeeLoginId({
+      sourceRow: employee.rowIndex + 1,
+      name: employee.name,
+      loginId: normalizedId,
+    });
+    const records = await fetchEmployeeLoginIds();
+    setLoginRecords(records);
+    setLoginApiError(null);
+  }, [employees]);
 
   // ─── 로그인 처리 ──────────────────────────────────────────
   const handleLogin = useCallback(({ type, employee }) => {
@@ -143,6 +171,9 @@ function App() {
           onLogout={handleLogout}
           loading={sheetsLoading || calcLoading}
           error={sheetsError || calcError}
+          employees={employees}
+          loginApiError={loginApiError}
+          onEmployeeLoginIdSave={handleEmployeeLoginIdSave}
         />
       );
 
@@ -162,7 +193,7 @@ function App() {
       return (
         <LoginPage
           onLogin={handleLogin}
-          employees={sheetsData?.employees || null}
+          employees={sheetsData ? employees : null}
           loading={sheetsLoading}
         />
       );
