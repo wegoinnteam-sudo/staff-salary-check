@@ -122,7 +122,12 @@ export const fetchWorkHoursData = async (targetMonth) => {
     if (!name) continue; // C열 이름이 없는 행 스킵
 
     // "4hr", "4hrs", "6hr", "6hrs" 등 근무시간 레이블은 직원이 아니므로 제외
-    if (/^\d+(\.\d+)?\s*hrs?$/i.test(name)) continue;
+    if (
+      /^\d+(\.\d+)?\s*hrs?$/i.test(name) ||
+      /^staff$/i.test(name) ||
+      /^\(/.test(name) ||
+      /memo|특이사항/i.test(name)
+    ) continue;
 
     // 이번 달 날짜별 근무시간 추출
     const dailyHours = dateCols.map((dc) => {

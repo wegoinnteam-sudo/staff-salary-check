@@ -171,9 +171,6 @@ function App() {
           onLogout={handleLogout}
           loading={sheetsLoading || calcLoading}
           error={sheetsError || calcError}
-          employees={employees}
-          loginApiError={loginApiError}
-          onEmployeeLoginIdSave={handleEmployeeLoginIdSave}
         />
       );
 
@@ -186,6 +183,9 @@ function App() {
           onLogout={handleLogout}
           loading={sheetsLoading || calcLoading}
           error={sheetsError || calcError}
+          employees={employees}
+          loginApiError={loginApiError}
+          onEmployeeLoginIdSave={handleEmployeeLoginIdSave}
         />
       );
 
