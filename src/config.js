@@ -16,7 +16,7 @@ export const WORK_HOURS_SHEET_NAME = 'time sheet';
 
 // 직원 로그인 ID를 관리하는 Google Apps Script 웹 앱 URL
 // google-apps-script/Code.gs 배포 후 생성된 /exec URL을 입력하세요.
-export const EMPLOYEE_AUTH_API_URL = '';
+export const EMPLOYEE_AUTH_API_URL = 'https://script.google.com/macros/s/AKfycbx48VOCsNwp2hSbdH4JK6xGtQq27gE-V4GCji8b_sng-xhwAZaRtP3E1FtYx2_BaRiL/exec';
 
 // 관리자 마스터 비밀번호
 export const MASTER_PASSWORD = '999222';
