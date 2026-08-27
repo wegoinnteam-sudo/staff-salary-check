@@ -3,18 +3,17 @@
 // 전체 직원 급여 현황 조회 + Excel 내보내기
 // ============================================================
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import PayslipDetail from './PayslipDetail.jsx';
 import MonthPicker from './MonthPicker.jsx';
 import { exportToExcel } from '../utils/excelExport.js';
 import { formatKRW, formatHours } from '../utils/payrollCalc.js';
 import { formatKoreanMonth } from '../utils/dateUtils.js';
 
-const AdminPage = ({ payslips, targetMonth, onMonthChange, onLogout, loading, error, employees, onEmployeeIdSave }) => {
+const AdminPage = ({ payslips, targetMonth, onMonthChange, onLogout, loading, error }) => {
   // 상세 보기 모달용 선택된 직원
   const [selectedPayslip, setSelectedPayslip] = useState(null);
   const [isExporting, setIsExporting] = useState(false);
-  const [view, setView] = useState('payroll');
 
   const monthLabel = formatKoreanMonth(targetMonth.year, targetMonth.month);
 
@@ -44,10 +43,7 @@ const AdminPage = ({ payslips, targetMonth, onMonthChange, onLogout, loading, er
             </div>
           </div>
           <div className="page-header-right">
-            <button className="btn btn-ghost" onClick={() => setView(view === 'employees' ? 'payroll' : 'employees')}>
-              {view === 'employees' ? '급여 현황' : '직원 관리'}
-            </button>
-            {view === 'payroll' && <MonthPicker targetMonth={targetMonth} onMonthChange={onMonthChange} />}
+            <MonthPicker targetMonth={targetMonth} onMonthChange={onMonthChange} />
             <button className="btn btn-ghost" onClick={onLogout}>
               로그아웃
             </button>
@@ -78,11 +74,7 @@ const AdminPage = ({ payslips, targetMonth, onMonthChange, onLogout, loading, er
         )}
 
         {/* 데이터 로드 완료 */}
-        {!loading && !error && view === 'employees' && (
-          <EmployeeIdManager employees={employees} onSave={onEmployeeIdSave} />
-        )}
-
-        {!loading && !error && view === 'payroll' && (
+        {!loading && !error && (
           <>
             {/* 관리자 요약 배너 */}
             <div className="admin-summary-banner">
@@ -167,56 +159,6 @@ const AdminPage = ({ payslips, targetMonth, onMonthChange, onLogout, loading, er
         </Modal>
       )}
     </div>
-  );
-};
-
-const EmployeeIdManager = ({ employees, onSave }) => {
-  const [drafts, setDrafts] = useState({});
-  const [messages, setMessages] = useState({});
-
-  useEffect(() => {
-    setDrafts(Object.fromEntries((employees || []).map((employee) => [employee.rowIndex, employee.id || ''])));
-  }, [employees]);
-
-  const save = (employee) => {
-    const result = onSave(employee, drafts[employee.rowIndex]);
-    setMessages((current) => ({
-      ...current,
-      [employee.rowIndex]: result.ok ? '저장되었습니다.' : result.message,
-    }));
-  };
-
-  return (
-    <section className="employee-manager">
-      <div className="employee-manager-heading">
-        <div>
-          <h2>직원 관리</h2>
-          <p>시트에서 불러온 직원 이름에 로그인 ID를 지정합니다.</p>
-        </div>
-      </div>
-      <div className="employee-manager-list">
-        {(employees || []).map((employee) => (
-          <div className="employee-manager-row" key={`${employee.rowIndex}-${employee.name}`}>
-            <div className="employee-manager-name">{employee.name}</div>
-            <input
-              className="form-input employee-id-input"
-              value={drafts[employee.rowIndex] ?? ''}
-              placeholder="직원 ID 입력"
-              aria-label={`${employee.name} 직원 ID`}
-              onChange={(e) => {
-                setDrafts((current) => ({ ...current, [employee.rowIndex]: e.target.value }));
-                setMessages((current) => ({ ...current, [employee.rowIndex]: '' }));
-              }}
-              onKeyDown={(e) => e.key === 'Enter' && save(employee)}
-            />
-            <button className="btn btn-primary" onClick={() => save(employee)}>저장</button>
-            <span className={messages[employee.rowIndex]?.includes('저장되었습니다') ? 'save-message' : 'save-message save-message--error'}>
-              {messages[employee.rowIndex]}
-            </span>
-          </div>
-        ))}
-      </div>
-    </section>
   );
 };
 

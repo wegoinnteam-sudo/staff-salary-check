@@ -2,14 +2,13 @@
 // 🏠 Wegoinn Hostel 급여명세서 앱 - 메인 컴포넌트
 // ============================================================
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import LoginPage from './components/LoginPage.jsx';
 import EmployeePage from './components/EmployeePage.jsx';
 import AdminPage from './components/AdminPage.jsx';
 import { fetchAllData } from './utils/sheetsApi.js';
 import { calculatePayslip, calculateAllPayslips } from './utils/payrollCalc.js';
 import { getCurrentKoreanMonth } from './utils/dateUtils.js';
-import { applyManagedIds, getEmployeeKey, loadEmployeeIds, saveEmployeeIds } from './utils/employeeIds.js';
 import './App.css';
 
 function App() {
@@ -23,13 +22,6 @@ function App() {
   const [sheetsData, setSheetsData] = useState(null);
   const [sheetsLoading, setSheetsLoading] = useState(true);
   const [sheetsError, setSheetsError] = useState(null);
-  const [employeeIds, setEmployeeIds] = useState(loadEmployeeIds);
-
-  // 직원 이름/근무기록은 시트에서, 로그인 ID는 관리자 화면의 저장값에서 가져옵니다.
-  const managedEmployees = useMemo(
-    () => applyManagedIds(sheetsData?.employees, employeeIds),
-    [sheetsData, employeeIds]
-  );
 
   // 계산된 급여 데이터
   const [employeePayslip, setEmployeePayslip] = useState(null);
@@ -66,8 +58,8 @@ function App() {
       setCalcError(null);
       try {
         if (authState.type === 'admin') {
-          // 관리자가 로그인 ID를 지정한 직원만 급여 현황에 포함
-          const employeesWithId = managedEmployees.filter(
+          // B열(ID)이 없는 직원은 관리자 화면에서 제외
+          const employeesWithId = sheetsData.employees.filter(
             (e) => String(e.id || '').trim() !== ''
           );
           const payslips = calculateAllPayslips(
@@ -78,7 +70,7 @@ function App() {
           );
           setAllPayslips(payslips);
         } else if (authState.type === 'employee' && authState.employee) {
-          const empData = managedEmployees.find(
+          const empData = sheetsData.employees.find(
             (e) => String(e.id).trim() === String(authState.employee.id).trim()
           );
           if (!empData) {
@@ -102,27 +94,7 @@ function App() {
     compute();
   // authState.type과 authState.employee.id가 바뀔 때, 또는 sheetsData가 처음 로드될 때 실행
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sheetsData, managedEmployees, authState.type, authState.employee?.id, targetMonth]);
-
-  const handleEmployeeIdSave = useCallback((employee, id) => {
-    const normalizedId = String(id || '').trim();
-    const key = getEmployeeKey(employee);
-    const duplicate = managedEmployees.find(
-      (item) => getEmployeeKey(item) !== key && String(item.id).trim() === normalizedId && normalizedId
-    );
-    if (duplicate) return { ok: false, message: `${duplicate.name} 직원이 이미 사용 중인 ID입니다.` };
-
-    try {
-      const next = { ...employeeIds };
-      if (normalizedId) next[key] = normalizedId;
-      else delete next[key];
-      saveEmployeeIds(next);
-      setEmployeeIds(next);
-      return { ok: true };
-    } catch {
-      return { ok: false, message: '직원 ID를 저장하지 못했습니다.' };
-    }
-  }, [employeeIds, managedEmployees]);
+  }, [sheetsData, authState.type, authState.employee?.id, targetMonth]);
 
   // ─── 로그인 처리 ──────────────────────────────────────────
   const handleLogin = useCallback(({ type, employee }) => {
@@ -171,8 +143,6 @@ function App() {
           onLogout={handleLogout}
           loading={sheetsLoading || calcLoading}
           error={sheetsError || calcError}
-          employees={managedEmployees}
-          onEmployeeIdSave={handleEmployeeIdSave}
         />
       );
 
@@ -192,7 +162,7 @@ function App() {
       return (
         <LoginPage
           onLogin={handleLogin}
-          employees={sheetsData ? managedEmployees : null}
+          employees={sheetsData?.employees || null}
           loading={sheetsLoading}
         />
       );

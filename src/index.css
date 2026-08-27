@@ -927,36 +927,6 @@ body {
   gap: 20px;
 }
 
-/* 직원 로그인 ID 관리 */
-.employee-manager {
-  background: var(--surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  padding: 28px;
-}
-
-.employee-manager-heading {
-  margin-bottom: 22px;
-}
-
-.employee-manager-heading h2 { font-size: 22px; }
-.employee-manager-heading p { margin-top: 4px; color: var(--text-muted); font-size: 14px; }
-.employee-manager-list { border-top: 1px solid var(--border); }
-
-.employee-manager-row {
-  min-height: 72px;
-  display: grid;
-  grid-template-columns: minmax(120px, 1fr) minmax(180px, 280px) auto minmax(110px, 1fr);
-  align-items: center;
-  gap: 14px;
-  border-bottom: 1px solid var(--border);
-}
-
-.employee-manager-name { font-weight: 600; }
-.employee-id-input { padding: 10px 12px; font-size: 14px; }
-.save-message { color: var(--text-success); font-size: 12px; }
-.save-message--error { color: var(--text-danger); }
-
 /* 직원 요약 카드 */
 .emp-card {
   background: var(--surface);
@@ -1147,16 +1117,6 @@ body {
   .admin-grid {
     grid-template-columns: 1fr;
   }
-
-  .page-header-right { gap: 6px; }
-  .page-header-right .btn { padding: 8px 11px; font-size: 12px; }
-  .employee-manager { padding: 20px 16px; }
-  .employee-manager-row {
-    grid-template-columns: 1fr auto;
-    gap: 8px;
-    padding: 14px 0;
-  }
-  .employee-manager-name, .save-message { grid-column: 1 / -1; }
 
   .payslip-header {
     padding: 20px 20px 16px;
