@@ -30,12 +30,21 @@ function doPost(e) {
     try {
       const records = getLoginRecords_();
 
-      // 빈 ID로 저장하면 해당 직원의 로그인 ID를 제거합니다.
+      // 이름은 유지되고 행 번호만 바뀐 경우(시트 중간에 직원 추가 등),
+      // 기존 레코드를 새 행으로 옮깁니다. ID의 실제 식별자는 직원 이름입니다.
+      const previousRowForName = Object.keys(records).find(
+        (row) => Number(row) !== sourceRow && String(records[row].name || '').trim() === name
+      );
+
+      // 빈 ID로 저장하면 현재 행 또는 같은 이름의 기존 로그인 ID를 제거합니다.
       if (!loginId) {
         delete records[sourceRow];
+        if (previousRowForName) delete records[previousRowForName];
         saveLoginRecords_(records);
         return json_({ ok: true });
       }
+
+      if (previousRowForName) delete records[previousRowForName];
 
       const duplicate = Object.values(records).find(
         (record) => Number(record.sourceRow) !== sourceRow && String(record.loginId).trim() === loginId
