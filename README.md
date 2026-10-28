@@ -2,6 +2,20 @@
 
 직원·근무시간은 Google Sheets의 `time sheet`에서 읽습니다. 로그인 ID, 보험 요율, 주휴수당 대상자는 앱 서버의 전용 저장소에 저장합니다. 실행 중 Google Apps Script를 호출하지 않습니다.
 
+## Cloudflare Pages 운영 배포
+
+`staff-salary-check.pages.dev`에서는 루트 `functions/api.js`가 `/api`를 처리하고 Cloudflare D1에 직원 ID와 설정을 보관합니다. 별도 Node 서버가 필요하지 않습니다.
+
+1. Cloudflare 대시보드의 **Storage & databases → D1**에서 `staff-salary-check` 데이터베이스를 생성합니다.
+2. **Workers & Pages → staff-salary-check → Settings → Bindings → Add → D1 database**에서 변수 이름을 **DB**로 지정하고 생성한 데이터베이스를 연결합니다. Production 환경에 적용합니다.
+3. 기존 직원 ID 이전: `node server/export-d1.js`로 `.data/cloudflare-import.sql`을 생성하고, 해당 파일의 SQL을 D1 데이터베이스 Console에서 실행합니다. 이 파일에는 직원 ID가 있어 Git에 포함하지 않습니다. 현재 작업 환경에는 직원 11명의 이전 파일이 준비되어 있습니다. 기존 데이터가 있으면 덮어쓰지 않습니다.
+4. Pages 빌드 명령은 `npm run build`, 출력 폴더는 `dist`, 루트 디렉터리는 저장소 루트로 설정합니다. Git 연동 배포로 루트 `functions/`도 함께 배포합니다. `dist`만 수동 업로드하는 배포로는 API가 포함되지 않습니다.
+5. 바인딩 설정 후 Production 배포를 다시 실행합니다. `/api?action=payrollSettings`에서 HTML 대신 `{"ok":true,"settings":...}` JSON이 반환되는지 확인합니다.
+
+D1 연결이나 직원 ID 이전이 끝나기 전에는 기존 직원의 운영 로그인이 복구되지 않습니다. 관리자 로그인은 데이터 조회 여부와 별개로 가능합니다. 요율을 비워두면 0%를 사용합니다.
+
+공식 안내: https://developers.cloudflare.com/pages/functions/bindings/#d1-databases
+
 ## 실행
 
 ```sh

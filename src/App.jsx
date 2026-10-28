@@ -70,13 +70,13 @@ function App() {
         if (work.status === 'fulfilled') setWorkData(work.value);
         else setEmployeeLoadError(getErrorMessage(work.reason.message));
         if (auth.status === 'fulfilled') setLoginRecords(auth.value);
-        else setLoginApiError('직원 ID를 불러오지 못했습니다. 잠시 후 새로고침해주세요.');
+        else setLoginApiError(`직원 ID를 불러오지 못했습니다. ${auth.reason.message || '앱 서버 연결을 확인해주세요.'}`);
         if (settings.status === 'fulfilled') {
           setPayrollSettings(settings.value);
           setSettingsError(null);
         } else {
           setPayrollSettings(normalizePayrollSettings());
-          setSettingsError(`${settings.reason.message} 미입력 요율은 0%로 계산합니다.`);
+          setSettingsError(`${settings.reason.message} 저장된 요율을 확인하지 못해 현재 0%로 표시합니다.`);
         }
         if (work.status === 'rejected') setSheetsError(getErrorMessage(work.reason.message));
       } catch (e) {

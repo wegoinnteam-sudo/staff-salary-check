@@ -1,13 +1,9 @@
 import { APP_API_URL, MASTER_PASSWORD } from '../config.js';
+import { parseApiResponse } from './apiResponse.js';
 
 export const isEmployeeAuthConfigured = () => Boolean(APP_API_URL.trim());
 
-const parseResponse = async (response) => {
-  if (!response.ok) throw new Error('LOGIN_API_ERROR');
-  const data = await response.json();
-  if (!data.ok) throw new Error(data.message || 'LOGIN_API_ERROR');
-  return data;
-};
+const parseResponse = parseApiResponse;
 
 export const fetchEmployeeLoginIds = async () => {
   if (!isEmployeeAuthConfigured()) return [];
