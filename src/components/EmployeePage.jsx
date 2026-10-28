@@ -7,7 +7,7 @@ import PayslipDetail from './PayslipDetail.jsx';
 import MonthPicker from './MonthPicker.jsx';
 import { formatKoreanMonth } from '../utils/dateUtils.js';
 
-const EmployeePage = ({ payslip, targetMonth, onMonthChange, onLogout, loading, error }) => {
+const EmployeePage = ({ payslip, targetMonth, onMonthChange, onLogout, onRefresh, loading, error }) => {
   const monthLabel = formatKoreanMonth(targetMonth.year, targetMonth.month);
 
   return (
@@ -20,6 +20,7 @@ const EmployeePage = ({ payslip, targetMonth, onMonthChange, onLogout, loading, 
             <span className="brand-name">Wegoinn Hostel</span>
           </div>
           <div className="page-header-right">
+            <button className="btn btn-ghost" disabled={loading} onClick={onRefresh}>시트 새로고침</button>
             <MonthPicker targetMonth={targetMonth} onMonthChange={onMonthChange} />
             <button className="btn btn-ghost" onClick={onLogout}>
               로그아웃
@@ -55,6 +56,7 @@ const EmployeePage = ({ payslip, targetMonth, onMonthChange, onLogout, loading, 
           <div className="empty-card">
             <div className="empty-icon">📭</div>
             <h3>{monthLabel} 근무 내역이 없습니다.</h3>
+            <p>근무시간 0시간 · 급여 0원</p>
             <p>{monthLabel} 근무 기록이 확인되지 않습니다.</p>
             <button className="btn btn-ghost" onClick={onLogout}>
               로그아웃

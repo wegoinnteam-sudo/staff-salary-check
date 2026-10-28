@@ -6,10 +6,11 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import LoginPage from './components/LoginPage.jsx';
 import EmployeePage from './components/EmployeePage.jsx';
 import AdminPage from './components/AdminPage.jsx';
-import { fetchAllData } from './utils/sheetsApi.js';
+import { fetchWorkHoursData } from './utils/sheetsApi.js';
 import { calculatePayslip, calculateAllPayslips } from './utils/payrollCalc.js';
 import { getCurrentKoreanMonth } from './utils/dateUtils.js';
 import { attachLoginIds, fetchEmployeeLoginIds, saveEmployeeLoginId } from './utils/employeeAuthApi.js';
+import { fetchPayrollSettings, savePayrollSettings, normalizePayrollSettings } from './utils/payrollSettings.js';
 import './App.css';
 
 function App() {
@@ -20,16 +21,28 @@ function App() {
   const [authState, setAuthState] = useState({ type: 'login' });
 
   // Google Sheets 원본 데이터 (employees, insuranceRates, holidayEligibleNames)
-  const [sheetsData, setSheetsData] = useState(null);
+  const [payrollSettings, setPayrollSettings] = useState(() => normalizePayrollSettings());
+  const [settingsError, setSettingsError] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [workData, setWorkData] = useState(null);
+  const [employeeLoadError, setEmployeeLoadError] = useState(null);
   const [sheetsLoading, setSheetsLoading] = useState(true);
   const [sheetsError, setSheetsError] = useState(null);
   const [loginRecords, setLoginRecords] = useState([]);
   const [loginApiError, setLoginApiError] = useState(null);
 
   const employees = useMemo(
-    () => attachLoginIds(sheetsData?.employees, loginRecords),
-    [sheetsData, loginRecords]
+    () => attachLoginIds(workData?.employees, loginRecords),
+    [workData, loginRecords]
   );
+
+  const sheetsData = useMemo(() => workData ? { ...workData, ...payrollSettings } : null, [workData, payrollSettings]);
+
+  const handleSettingsSave = async (settings) => {
+    const saved = await savePayrollSettings(settings);
+    setPayrollSettings(saved);
+    setSettingsError(null);
+  };
 
   // 계산된 급여 데이터
   const [employeePayslip, setEmployeePayslip] = useState(null);
@@ -39,28 +52,42 @@ function App() {
 
   // ─── targetMonth가 바뀔 때마다 Google Sheets 데이터 재fetch ─
   useEffect(() => {
+    let cancelled = false;
     const load = async () => {
       setSheetsLoading(true);
       setSheetsError(null);
-      setSheetsData(null); // 이전 달 데이터 초기화
+      setWorkData(null);
+      setEmployeeLoadError(null);
+      setLoginApiError(null);
+      setLoginRecords([]);
       try {
-        const [data, records] = await Promise.all([
-          fetchAllData(targetMonth),
-          fetchEmployeeLoginIds().catch((error) => {
-            setLoginApiError(error.message);
-            return [];
-          }),
+        const [work, settings, auth] = await Promise.allSettled([
+          fetchWorkHoursData(targetMonth),
+          fetchPayrollSettings(),
+          fetchEmployeeLoginIds(),
         ]);
-        setSheetsData(data);
-        setLoginRecords(records);
+        if (cancelled) return;
+        if (work.status === 'fulfilled') setWorkData(work.value);
+        else setEmployeeLoadError(getErrorMessage(work.reason.message));
+        if (auth.status === 'fulfilled') setLoginRecords(auth.value);
+        else setLoginApiError('직원 ID를 불러오지 못했습니다. 잠시 후 새로고침해주세요.');
+        if (settings.status === 'fulfilled') {
+          setPayrollSettings(settings.value);
+          setSettingsError(null);
+        } else {
+          setPayrollSettings(normalizePayrollSettings());
+          setSettingsError(`${settings.reason.message} 미입력 요율은 0%로 계산합니다.`);
+        }
+        if (work.status === 'rejected') setSheetsError(getErrorMessage(work.reason.message));
       } catch (e) {
-        setSheetsError(getErrorMessage(e.message));
+        if (!cancelled) setSheetsError(getErrorMessage(e.message));
       } finally {
-        setSheetsLoading(false);
+        if (!cancelled) setSheetsLoading(false);
       }
     };
     load();
-  }, [targetMonth]);
+    return () => { cancelled = true; };
+  }, [targetMonth, refreshKey]);
 
   // ─── 시트 데이터가 로드되면 급여 계산 (로그인 타이밍 무관) ─
   // 로그인 전에 데이터가 로드되거나, 데이터 로드 전에 로그인해도
@@ -165,6 +192,7 @@ function App() {
     case 'employee':
       return (
         <EmployeePage
+          onRefresh={() => setRefreshKey((key) => key + 1)}
           payslip={employeePayslip}
           targetMonth={targetMonth}
           onMonthChange={handleMonthChange}
@@ -186,6 +214,10 @@ function App() {
           employees={employees}
           loginApiError={loginApiError}
           onEmployeeLoginIdSave={handleEmployeeLoginIdSave}
+          payrollSettings={payrollSettings}
+          settingsError={settingsError}
+          onSettingsSave={handleSettingsSave}
+          onRefresh={() => setRefreshKey((key) => key + 1)}
         />
       );
 
@@ -193,8 +225,9 @@ function App() {
       return (
         <LoginPage
           onLogin={handleLogin}
-          employees={sheetsData ? employees : null}
+          employees={workData ? employees : null}
           loading={sheetsLoading}
+          dataError={employeeLoadError || loginApiError}
         />
       );
   }
@@ -202,6 +235,8 @@ function App() {
 
 // ─── 에러 메시지 한국어 변환 ──────────────────────────────────
 const getErrorMessage = (code) => {
+  if (code === 'SHEET_UNAVAILABLE')
+    return '설정된 시트를 사용할 수 없습니다. 관리자에게 시트 주소와 삭제 여부 확인을 요청해주세요.';
   if (code === 'NETWORK_ERROR')
     return '네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.';
   if (code === 'INVALID_RESPONSE')

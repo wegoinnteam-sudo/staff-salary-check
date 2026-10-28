@@ -3,7 +3,7 @@
 // 참고: 시트는 "링크가 있는 모든 사용자가 볼 수 있음"으로 공개 설정 필요
 // ============================================================
 
-import { SHEET_IDS, SHEET_CONFIG, INSURANCE_ITEM_KEYS, WORK_HOURS_SHEET_NAME } from '../config.js';
+import { SHEET_IDS, SHEET_CONFIG, WORK_HOURS_SHEET_NAME } from '../config.js';
 import { parseGvizDate, isInMonth } from './dateUtils.js';
 
 /**
@@ -12,7 +12,7 @@ import { parseGvizDate, isInMonth } from './dateUtils.js';
  * sheet: 탭 이름 (비어있으면 첫 번째 탭)
  */
 const makeGvizUrl = (sheetId, sheetName = '') => {
-  const base = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&headers=0`;
+  const base = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&headers=0&_=${Date.now()}`;
   return sheetName ? `${base}&sheet=${encodeURIComponent(sheetName)}` : base;
 };
 
@@ -145,73 +145,4 @@ export const fetchWorkHoursData = async (targetMonth) => {
   }
 
   return { employees, dateCols };
-};
-
-// ─────────────────────────────────────────────
-// 요율/주휴수당 시트 파싱
-// ─────────────────────────────────────────────
-
-/**
- * 요율 및 주휴수당 대상 시트를 fetch & 파싱합니다.
- * @returns {Promise<{ insuranceRates: object, holidayEligibleNames: string[] }>}
- *
- * insuranceRates: { '국민연금': 0.045, '건강보험': 0.03545, ... }
- * holidayEligibleNames: ['홍길동', '김철수', ...]
- */
-export const fetchRatesData = async () => {
-  const url = makeGvizUrl(SHEET_IDS.RATES);
-  let text;
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('NETWORK_ERROR');
-    text = await res.text();
-  } catch (e) {
-    if (e.message === 'NETWORK_ERROR') throw e;
-    throw new Error('NETWORK_ERROR');
-  }
-
-  const table = parseGvizResponse(text);
-  const rows = table.rows || [];
-  const cfg = SHEET_CONFIG.RATES;
-
-  const insuranceRates = {};
-  const holidayEligibleNames = [];
-
-  for (let r = 0; r < rows.length; r++) {
-    const row = rows[r];
-
-    // A열: 공제 항목명, B열: 요율
-    const itemName = toString(getCell(row, cfg.ITEM_NAME_COL));
-    const rateCell = getCell(row, cfg.RATE_COL);
-    if (itemName && rateCell) {
-      const rate = toNumber(rateCell);
-      // 항목명에 키워드가 포함되어 있으면 저장
-      for (const key of Object.values(INSURANCE_ITEM_KEYS)) {
-        if (itemName.includes(key)) {
-          insuranceRates[key] = rate;
-          break;
-        }
-      }
-    }
-
-    // F열(또는 설정된 열): 주휴수당 대상 직원 이름
-    const holidayCell = getCell(row, cfg.HOLIDAY_ELIGIBLE_COL);
-    const holidayName = toString(holidayCell);
-    if (holidayName) {
-      holidayEligibleNames.push(holidayName);
-    }
-  }
-
-  return { insuranceRates, holidayEligibleNames };
-};
-
-/**
- * 근무시간 시트와 요율 시트를 동시에 불러옵니다.
- */
-export const fetchAllData = async (targetMonth) => {
-  const [workData, ratesData] = await Promise.all([
-    fetchWorkHoursData(targetMonth),
-    fetchRatesData(),
-  ]);
-  return { ...workData, ...ratesData };
 };

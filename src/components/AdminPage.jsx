@@ -6,11 +6,12 @@
 import { useEffect, useState } from 'react';
 import PayslipDetail from './PayslipDetail.jsx';
 import MonthPicker from './MonthPicker.jsx';
+import PayrollSettings from './PayrollSettings.jsx';
 import { exportToExcel } from '../utils/excelExport.js';
 import { formatKRW, formatHours } from '../utils/payrollCalc.js';
 import { formatKoreanMonth } from '../utils/dateUtils.js';
 
-const AdminPage = ({ payslips, targetMonth, onMonthChange, onLogout, loading, error, employees, loginApiError, onEmployeeLoginIdSave }) => {
+const AdminPage = ({ payslips, targetMonth, onMonthChange, onLogout, loading, error, employees, loginApiError, onEmployeeLoginIdSave, payrollSettings, settingsError, onSettingsSave, onRefresh }) => {
   // 상세 보기 모달용 선택된 직원
   const [selectedPayslip, setSelectedPayslip] = useState(null);
   const [isExporting, setIsExporting] = useState(false);
@@ -44,6 +45,10 @@ const AdminPage = ({ payslips, targetMonth, onMonthChange, onLogout, loading, er
             </div>
           </div>
           <div className="page-header-right">
+            <button className="btn btn-ghost" onClick={() => { setSelectedPayslip(null); setView(view === 'settings' ? 'payroll' : 'settings'); }}>
+              {view === 'settings' ? '급여 현황' : '요율 설정'}
+            </button>
+            <button className="btn btn-ghost" disabled={loading} onClick={onRefresh}>시트 새로고침</button>
             <button className="btn btn-ghost" onClick={() => setView(view === 'employees' ? 'payroll' : 'employees')}>
               {view === 'employees' ? '급여 현황' : '직원 관리'}
             </button>
@@ -57,6 +62,10 @@ const AdminPage = ({ payslips, targetMonth, onMonthChange, onLogout, loading, er
 
       {/* 메인 콘텐츠 */}
       <main className="page-main">
+        {view === 'settings' && (
+          <PayrollSettings settings={payrollSettings} error={settingsError} onSave={onSettingsSave} />
+        )}
+        {view !== 'settings' && settingsError && <p className="info-message">{settingsError}</p>}
         {/* 로딩 */}
         {loading && (
           <div className="loading-state">
@@ -150,7 +159,7 @@ const AdminPage = ({ payslips, targetMonth, onMonthChange, onLogout, loading, er
               <div className="admin-grid">
                 {payslips.map((p) => (
                   <EmployeeSummaryCard
-                    key={p.id}
+                    key={`${p.name}-${p.id}`}
                     payslip={p}
                     onClick={() => setSelectedPayslip(p)}
                   />

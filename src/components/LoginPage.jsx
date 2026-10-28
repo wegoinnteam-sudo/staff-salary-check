@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import { MASTER_PASSWORD } from '../config.js';
 
-const LoginPage = ({ onLogin, employees, loading }) => {
+const LoginPage = ({ onLogin, employees, loading, dataError }) => {
   const [input, setValue] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -30,6 +30,11 @@ const LoginPage = ({ onLogin, employees, loading }) => {
     }
 
     // 직원 ID 확인
+    if (loading || dataError) {
+      setError(dataError || '데이터를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+      setIsSubmitting(false);
+      return;
+    }
     if (employees) {
       const found = employees.find((emp) => String(emp.id).trim() === val);
       if (found) {
@@ -68,15 +73,15 @@ const LoginPage = ({ onLogin, employees, loading }) => {
                 setValue(e.target.value);
                 setError('');
               }}
-              disabled={loading || isSubmitting}
+              disabled={isSubmitting}
               autoFocus
             />
           </div>
 
           {/* 에러 메시지 */}
-          {error && (
+          {(error || dataError) && (
             <div className="error-message">
-              <span>⚠️</span> {error}
+              <span>⚠️</span> {error || dataError}
             </div>
           )}
 
@@ -90,7 +95,7 @@ const LoginPage = ({ onLogin, employees, loading }) => {
           <button
             type="submit"
             className="btn btn-primary btn-full"
-            disabled={loading || isSubmitting || !input.trim()}
+            disabled={isSubmitting || !input.trim()}
           >
             {isSubmitting ? '로그인 중...' : '로그인'}
           </button>

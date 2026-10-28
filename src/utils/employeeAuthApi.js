@@ -1,6 +1,6 @@
-import { EMPLOYEE_AUTH_API_URL, MASTER_PASSWORD } from '../config.js';
+import { APP_API_URL, MASTER_PASSWORD } from '../config.js';
 
-export const isEmployeeAuthConfigured = () => Boolean(EMPLOYEE_AUTH_API_URL.trim());
+export const isEmployeeAuthConfigured = () => Boolean(APP_API_URL.trim());
 
 const parseResponse = async (response) => {
   if (!response.ok) throw new Error('LOGIN_API_ERROR');
@@ -11,14 +11,14 @@ const parseResponse = async (response) => {
 
 export const fetchEmployeeLoginIds = async () => {
   if (!isEmployeeAuthConfigured()) return [];
-  const response = await fetch(`${EMPLOYEE_AUTH_API_URL}?action=list&_=${Date.now()}`);
+  const response = await fetch(`${APP_API_URL}?action=list&_=${Date.now()}`);
   const data = await parseResponse(response);
   return data.employees || [];
 };
 
 export const saveEmployeeLoginId = async ({ sourceRow, name, loginId }) => {
   if (!isEmployeeAuthConfigured()) throw new Error('LOGIN_API_NOT_CONFIGURED');
-  const response = await fetch(EMPLOYEE_AUTH_API_URL, {
+  const response = await fetch(APP_API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
     body: JSON.stringify({

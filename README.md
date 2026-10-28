@@ -1,70 +1,42 @@
-# GitHub Codespaces ♥️ React
+# Wegoinn 급여명세서
 
-Welcome to your shiny new Codespace running React! We've got everything fired up and running for you to explore React.
+직원·근무시간은 Google Sheets의 `time sheet`에서 읽습니다. 로그인 ID, 보험 요율, 주휴수당 대상자는 앱 서버의 전용 저장소에 저장합니다. 실행 중 Google Apps Script를 호출하지 않습니다.
 
-You've got a blank canvas to work on from a git perspective as well. There's a single initial commit with the what you're seeing right now - where you go from here is up to you!
+## 실행
 
-Everything you do here is contained within this one codespace. There is no repository on GitHub yet. If and when you’re ready you can click "Publish Branch" and we’ll create your repository and push up your project. If you were just exploring then and have no further need for this code then you can simply delete your codespace and it's gone forever.
+```sh
+npm install
+npm start
+```
 
-This project was bootstrapped for you with [Vite](https://vitejs.dev/).
+개발 화면은 3000번, API 서버는 3001번 포트를 사용합니다. 이전에 Vite만 실행했다면 종료 후 `npm start`로 다시 시작하세요.
 
-## Available Scripts
+운영 실행:
 
-In the project directory, you can run:
+```sh
+npm run build
+npm run serve
+```
 
-### `npm start`
+Node.js 서버가 화면과 `/api`를 함께 제공합니다. 정적 파일만 배포하면 설정 저장·직원 로그인이 동작하지 않습니다.
 
-We've already run this for you in the `Codespaces: server` terminal window below. If you need to stop the server for any reason you can just run `npm start` again to bring it back online.
+## 데이터 저장
 
-Runs the app in the development mode.\
-Open [http://localhost:3000/](http://localhost:3000/) in the built-in Simple Browser (`Cmd/Ctrl + Shift + P > Simple Browser: Show`) to view your running application.
+기본 저장 파일은 `.data/payroll.json`이며 Git에서 제외됩니다. 운영 환경에서는 `PAYROLL_DATA_DIR`을 영구 보관 경로로 지정하고 이 경로를 백업하세요. 기존 직원 ID를 유지하려면 이전한 `.data/payroll.json`도 운영 저장소에 복사해야 합니다. `PORT`로 운영 포트를 변경할 수 있습니다.
 
-The page will reload automatically when you make changes.\
-You may also see any lint errors in the console.
+## 관리자 설정
 
-### `npm test`
+관리자 로그인 → **요율 설정**에서 국민연금·건강보험·고용보험·장기요양 요율을 % 단위로 입력합니다. 빈 값과 0은 공제액 0으로 계산합니다. 국민연금·건강보험은 총 요율의 절반을 직원 부담으로, 고용보험은 입력 요율 그대로, 장기요양은 건강보험료에 요율을 곱해 계산합니다. 기존 프리랜서 원천징수 계산은 유지합니다.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+주휴수당 대상 직원은 한 줄에 한 명씩 입력합니다. 빈 목록은 주휴수당 0원입니다. 저장한 설정은 모든 직원과 조회 월에 공통 적용됩니다. 직원 ID는 **직원 관리**에서 설정합니다.
 
-### `npm run build`
+관리자·직원 화면의 **시트 새로고침**, 월 변경, 페이지 새로고침으로 변경된 근무시간을 불러옵니다. 빈 근무시간은 0이며 근무 내역이 없는 달에는 0시간·0원을 표시합니다.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## 검증
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```sh
+npm test -- --run
+npm run build
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-## Learn More
-
-You can learn more in the [Vite documentation](https://vitejs.dev/guide/).
-
-To learn Vitest, a Vite-native testing framework, go to [Vitest documentation](https://vitest.dev/guide/)
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://sambitsahoo.com/blog/vite-code-splitting-that-works.html](https://sambitsahoo.com/blog/vite-code-splitting-that-works.html)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://github.com/btd/rollup-plugin-visualizer#rollup-plugin-visualizer](https://github.com/btd/rollup-plugin-visualizer#rollup-plugin-visualizer)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://dev.to/hamdankhan364/simplifying-progressive-web-app-pwa-development-with-vite-a-beginners-guide-38cf](https://dev.to/hamdankhan364/simplifying-progressive-web-app-pwa-development-with-vite-a-beginners-guide-38cf)
-
-### Advanced Configuration
-
-This section has moved here: [https://vitejs.dev/guide/build.html#advanced-base-options](https://vitejs.dev/guide/build.html#advanced-base-options)
-
-### Deployment
-
-This section has moved here: [https://vitejs.dev/guide/build.html](https://vitejs.dev/guide/build.html)
-
-### Troubleshooting
-
-This section has moved here: [https://vitejs.dev/guide/troubleshooting.html](https://vitejs.dev/guide/troubleshooting.html)
+`google-apps-script/`는 이전 방식의 참고 자료이며 현재 앱에서는 사용하지 않습니다.

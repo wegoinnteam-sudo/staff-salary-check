@@ -5,7 +5,6 @@
 // Google Sheets ID (URL에서 /d/ 와 /edit 사이의 값)
 export const SHEET_IDS = {
   WORK_HOURS: '1a8jUbszQLpq-mzbfIV4oPgxrGxFCrFAnc4lhlzVzL-w',
-  RATES: '1F9ZNVQw_mvQZ59j88Gwbruq_wCOnDLdfxBA0kK3KALM',
 };
 
 // 근무시간 시트의 탭(시트) 이름
@@ -14,9 +13,8 @@ export const SHEET_IDS = {
 // ⚠️ 현재 첫 번째 탭이 "Reception Notice"인 경우, 올바른 근무시간 탭 이름으로 변경 필요
 export const WORK_HOURS_SHEET_NAME = 'time sheet';
 
-// 직원 로그인 ID를 관리하는 Google Apps Script 웹 앱 URL
-// google-apps-script/Code.gs 배포 후 생성된 /exec URL을 입력하세요.
-export const EMPLOYEE_AUTH_API_URL = 'https://script.google.com/macros/s/AKfycbx48VOCsNwp2hSbdH4JK6xGtQq27gE-V4GCji8b_sng-xhwAZaRtP3E1FtYx2_BaRiL/exec';
+// 직원 ID와 급여 설정을 저장하는 앱 서버 API
+export const APP_API_URL = '/api';
 
 // 관리자 마스터 비밀번호
 export const MASTER_PASSWORD = '999222';
@@ -53,12 +51,7 @@ export const SHEET_CONFIG = {
     DATE_ROW: 1,          // 2행: 날짜 (0-indexed: 1)
     DATE_COL_START: 3,    // D열부터 날짜별 근무시간 데이터 시작
   },
-  RATES: {
-    ITEM_NAME_COL: 0,         // A열: 공제 항목명
-    RATE_COL: 1,              // B열: 요율 (소수점, 예: 0.045 = 4.5%)
-    // 주휴수당 대상 직원 컬럼 (F열 기본, 필요시 3으로 변경 → D열)
-    HOLIDAY_ELIGIBLE_COL: 5,  // F열: 주휴수당 지급 대상 직원
-  },
+
 };
 
 // 4대보험 항목명 키워드 (시트 A열의 텍스트와 매칭)
